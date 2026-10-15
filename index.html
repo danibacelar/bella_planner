@@ -1,0 +1,508 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Isabella's Study Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: sticky-free single column. Header + this-week hero, scrollable tab bar, then one view at a time.
+   Palette: lilac ground, indigo ink, one color per subject (CIE blue, reading teal, spelling orange, cursive pink, summary coral, tutoring gold). */
+:root{
+  --bg:#f3f0ff; --surface:#ffffff; --surface2:#faf8ff; --ink:#2a2150; --muted:#655e8c; --line:#e0daf5;
+  --brand:#6247e6; --brand-ink:#ffffff; --focus:#2a2150;
+  --cie:#2f6fe4; --read:#0b8f78; --spell:#d9690c; --cursive:#d6338a; --summary:#d8433f; --tutor:#f0b400; --plan:#7a6cc4; --custom:#5b5f7a; --catch:#7a6cc4;
+  --good:#1f9d55; --late:#d8433f; --chk:#ffffff;
+  --display:'Fredoka','Trebuchet MS',system-ui,sans-serif; --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif; --script:'Dancing Script','Brush Script MT',cursive;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#171332; --surface:#231d47; --surface2:#1d1840; --ink:#f1edff; --muted:#b0a9d9; --line:#3a3268;
+  --brand:#9d88ff; --brand-ink:#17123a; --focus:#f1edff;
+  --cie:#6aa0ff; --read:#34d3b4; --spell:#ffa24a; --cursive:#ff7ac0; --summary:#ff7a74; --tutor:#ffc933; --plan:#a89bf0; --custom:#9aa0c4; --catch:#a89bf0;
+  --good:#4ade80; --late:#ff7a74; --chk:#17123a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#171332; --surface:#231d47; --surface2:#1d1840; --ink:#f1edff; --muted:#b0a9d9; --line:#3a3268;
+  --brand:#9d88ff; --brand-ink:#17123a; --focus:#f1edff;
+  --cie:#6aa0ff; --read:#34d3b4; --spell:#ffa24a; --cursive:#ff7ac0; --summary:#ff7a74; --tutor:#ffc933; --plan:#a89bf0; --custom:#9aa0c4; --catch:#a89bf0;
+  --good:#4ade80; --late:#ff7a74; --chk:#17123a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:0 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-top:16px}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.2;margin:0;text-wrap:balance}
+h2{font-size:1.35rem} h3{font-size:1.1rem}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:12px;padding:9px 12px;min-width:0;max-width:100%}
+textarea{width:100%;resize:vertical;min-height:96px;line-height:1.5}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+label.f{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.9rem;color:var(--muted)}
+.muted{color:var(--muted)} .small{font-size:.88rem}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.between{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px}
+.grid2>*{min-width:0}
+
+/* header */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1}
+.script{font-family:var(--script);font-size:2.3rem;color:var(--cursive)}
+.brand .title{font-family:var(--display);font-size:1.15rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.status{font-size:.85rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px}
+.status i{width:10px;height:10px;border-radius:50%;background:var(--good);display:inline-block}
+.status.warn i{background:var(--spell)}
+.hero{background:var(--brand);color:var(--brand-ink);border-radius:24px;padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:8px 20px;align-items:center}
+.hero .kick{font-weight:800;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.hero h2{font-size:1.5rem}
+.hero .pct{font-family:var(--display);font-size:2.6rem;line-height:1;grid-row:1/3;grid-column:2}
+.hero .bar{grid-column:1/3;background:color-mix(in srgb,var(--brand-ink) 28%,transparent);height:16px}
+.hero .bar i{background:var(--brand-ink)}
+.hero .msg{grid-column:1/3;font-weight:700}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:2px solid currentColor;border-radius:999px;padding:1px 10px;font-size:.82rem;font-weight:800}
+.hero .chip{border-color:color-mix(in srgb,var(--brand-ink) 55%,transparent)}
+
+/* tabs */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
+.tab{flex:none;border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 16px;font-weight:800;font-size:.95rem}
+.tab[aria-current="page"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+
+/* controls */
+.btn{border:2px solid var(--brand);background:var(--brand);color:var(--brand-ink);border-radius:12px;padding:8px 16px;font-weight:800}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.sm{padding:4px 12px;font-size:.88rem;border-radius:10px}
+.btn.danger{background:transparent;border-color:var(--line);color:var(--late)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.nav .ttl{font-family:var(--display);font-size:1.25rem;text-align:center;flex:1;min-width:150px}
+.x{border:0;background:transparent;color:var(--muted);font-weight:800;font-size:1.1rem;padding:2px 8px;border-radius:8px}
+
+/* bars */
+.bar{height:14px;border-radius:999px;background:color-mix(in srgb,var(--c,var(--brand)) 16%,var(--surface));overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:var(--c,var(--brand));transition:width .4s}
+.goal{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center}
+.goal b{font-weight:800}.goal .n{font-family:var(--display);font-weight:600}
+.goal .bar{grid-column:1/3}
+.goal.ok .n::after{content:" ✓";color:var(--good)}
+
+/* tasks */
+.tasks{display:flex;flex-direction:column;gap:8px}
+.tw{display:flex;align-items:stretch;gap:6px}
+.task{position:relative;flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;cursor:pointer;
+  background:color-mix(in srgb,var(--c) 11%,var(--surface));border:2px solid color-mix(in srgb,var(--c) 28%,var(--surface))}
+.task input{position:absolute;opacity:0;width:0;height:0}
+.task .box{width:28px;height:28px;border-radius:9px;border:3px solid var(--c);background:var(--surface);flex:none;display:grid;place-items:center}
+.task input:checked+.box{background:var(--c)}
+.task input:checked+.box::after{content:"";width:7px;height:13px;border:solid var(--chk);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.task input:focus-visible+.box{outline:3px solid var(--focus);outline-offset:2px}
+.task .lbl{flex:1;min-width:0;font-weight:700}
+.task.done .lbl{text-decoration:line-through;opacity:.65}
+.task .tag{font-size:.78rem;font-weight:800;color:var(--c);white-space:nowrap}
+.t-cie{--c:var(--cie)}.t-read{--c:var(--read)}.t-spell{--c:var(--spell)}.t-cursive{--c:var(--cursive)}.t-summary{--c:var(--summary)}
+.t-tutor{--c:var(--tutor);--chk:#2a2150}.t-plan{--c:var(--plan)}.t-catch{--c:var(--catch)}.t-custom{--c:var(--custom)}
+@media (prefers-reduced-motion:no-preference){.task input:checked+.box{animation:pop .25s}@keyframes pop{50%{transform:scale(1.2)}}}
+
+.badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 10px;font-weight:800;font-size:.8rem;white-space:nowrap}
+.badge.gold{background:var(--tutor);color:#2a2150}
+.badge.today{background:var(--ink);color:var(--bg)}
+
+/* week */
+.days{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:14px}
+.day{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.day.tutor{border-color:var(--tutor);background:color-mix(in srgb,var(--tutor) 9%,var(--surface))}
+.day.today{box-shadow:0 0 0 3px var(--brand)}
+.day>header{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dayname{border:0;background:none;padding:0;text-align:left;display:flex;flex-direction:column;line-height:1.15;flex:1}
+.dayname b{font-family:var(--display);font-size:1.15rem}.dayname span{font-size:.82rem;color:var(--muted);font-weight:700}
+.cnt{font-family:var(--display);color:var(--muted)}
+.day .bar{height:9px}
+
+/* month */
+.mhead,.mrow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.mhead div{text-align:center;font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.wkcap{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.82rem;font-weight:800;color:var(--muted);margin:10px 0 4px}
+.cell{border:2px solid var(--line);background:var(--surface);border-radius:12px;min-height:76px;padding:6px;text-align:left;display:flex;flex-direction:column;gap:3px;min-width:0}
+.cell.out{opacity:.45}
+.cell.tutor{border-color:var(--tutor);background:color-mix(in srgb,var(--tutor) 12%,var(--surface))}
+.cell.today{box-shadow:0 0 0 3px var(--brand)}
+.cell .d{font-family:var(--display);font-weight:600;display:flex;justify-content:space-between}
+.cell .ct{font-size:.78rem;font-weight:800;color:var(--muted)}
+.cell.late .ct{color:var(--late)}
+.cell.full .ct{color:var(--good)}
+.cell .bar{height:6px}
+@media (max-width:560px){.cell{min-height:58px;padding:4px}.cell .ct{font-size:.7rem}.cell .st{display:none}}
+
+/* misc content */
+.note-item{border-left:5px solid var(--c,var(--brand));padding:8px 12px;background:var(--surface2);border-radius:0 12px 12px 0}
+.od{background:color-mix(in srgb,var(--late) 8%,var(--surface));border-color:color-mix(in srgb,var(--late) 45%,var(--surface))}
+.ok-box{background:color-mix(in srgb,var(--good) 10%,var(--surface));border-color:color-mix(in srgb,var(--good) 40%,var(--surface))}
+.chapters{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px}
+.ch{border:3px solid var(--read);background:var(--surface);border-radius:12px;height:46px;font-family:var(--display);font-size:1.1rem}
+.ch.on{background:var(--read);color:var(--chk)}
+.ch.next{outline:3px dashed var(--brand);outline-offset:2px}
+.book{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border:2px solid var(--line);border-radius:14px;background:var(--surface2)}
+.book.cur{border-color:var(--read)}
+.book .meta{flex:1;min-width:160px}
+.tbl{width:100%;border-collapse:collapse;font-size:.95rem}
+.tbl th{text-align:left;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 6px}
+.tbl td{padding:4px 6px;border-top:1px solid var(--line);vertical-align:middle}
+.tbl input{width:100%}
+.scroll{overflow-x:auto}
+.words{display:flex;flex-wrap:wrap;gap:8px}
+.word{display:flex;align-items:center;gap:8px;border:2px solid var(--spell);border-radius:999px;padding:3px 6px 3px 12px;font-weight:800;background:color-mix(in srgb,var(--spell) 9%,var(--surface))}
+.word.ok{background:var(--spell);color:var(--chk)}
+.word button{border:0;background:transparent;font-weight:800}
+.mood{display:flex;gap:8px;flex-wrap:wrap}
+.mood button{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:6px 14px;font-weight:800}
+.mood button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.achv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.a{border:2px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:2px;background:var(--surface2)}
+.a .ic{font-size:1.6rem;line-height:1}
+.a.on{border-color:var(--tutor);background:color-mix(in srgb,var(--tutor) 14%,var(--surface))}
+.a:not(.on){opacity:.6;filter:grayscale(1)}
+.a b{font-size:.9rem}.a span.s{font-size:.78rem;color:var(--muted)}
+.roadmap{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.rw{border:2px solid var(--line);border-radius:12px;padding:6px 8px;font-size:.82rem;background:var(--surface2)}
+.rw b{display:block;font-family:var(--display)}
+.rw.cur{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 14%,var(--surface))}
+.skill{border-color:var(--line);color:var(--muted)}.skill.on{border-color:var(--brand);background:var(--brand);color:var(--brand-ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:max(20px,env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:16px;font-weight:800;z-index:9;max-width:90vw;text-align:center}
+details>summary{cursor:pointer;font-weight:800}
+.hint{font-size:.85rem;color:var(--muted)}
+.lists{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.task.cur{box-shadow:0 0 0 3px var(--brand)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.two>*{min-width:0}
+@media (max-width:560px){.two{grid-template-columns:1fr}}
+.bigscript{font-family:var(--script);font-size:3.2rem;line-height:1.2;color:var(--cursive)}
+
+@media print{
+  :root:root:root{--bg:#fff;--surface:#fff;--surface2:#fff;--ink:#000;--muted:#333;--line:#999;--brand:#444;--brand-ink:#fff;color-scheme:light}
+  .noprint,.tabs,.status,.x,.btn,.toast{display:none!important}
+  body{padding:0}.wrap{max-width:none}
+  .card,.day,.cell{break-inside:avoid;border-width:1px}
+  .hero{border:1px solid #000;color:#000;background:#fff}.hero .bar{background:#ddd}.hero .bar i{background:#000}
+  .bar{border:1px solid #777}
+  @page{margin:12mm}
+}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><span class="script" id="nameLine">Isabella's</span><span class="title">Study Planner</span></div>
+    <div class="status noprint" id="savestat"><i></i><span>Saved</span></div>
+  </div>
+  <section class="hero" id="hero"></section>
+  <nav class="tabs noprint" id="tabs" aria-label="Planner sections"></nav>
+  <main id="view" class="wrap" style="padding:0"></main>
+</div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+/* ---------- helpers ---------- */
+const LS_KEY='isabella-planner-v1';
+const DOW=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d)};
+const weekStart=s=>{const d=parse(s);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d)};
+const TODAY=()=>iso(new Date());
+const dowOf=s=>parse(s).getDay();
+const short=s=>{const d=parse(s);return MON[d.getMonth()].slice(0,3)+' '+d.getDate()};
+const longDate=s=>{const d=parse(s);return DOW[d.getDay()]+', '+MON[d.getMonth()]+' '+d.getDate()};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const getPath=(o,p)=>p.split('.').reduce((a,k)=>a==null?undefined:a[k],o);
+function setPath(o,p,v){const k=p.split('.');let c=o;for(let i=0;i<k.length-1;i++){if(c[k[i]]==null||typeof c[k[i]]!=='object')c[k[i]]={};c=c[k[i]]}c[k[k.length-1]]=v}
+const words=t=>(t.trim().match(/\S+/g)||[]).length;
+
+/* ---------- plan template ---------- */
+const T=(id,label,type)=>({id,label,type,base:true});
+const PLAN={
+ 1:[T('cie1','CIE Lesson 1','cie'),T('cie2','CIE Lesson 2','cie'),T('cie3','CIE Lesson 3','cie'),T('read','Read 1 chapter','read')],
+ 2:[T('t-review','Review Lessons 1–3','tutor'),T('t-aloud','Reading aloud','tutor'),T('t-comp','Reading comprehension','tutor'),T('t-stress','Stress and pitch practice','tutor'),T('t-mini','Language Arts mini-lesson','tutor'),T('t-cursive','Cursive practice','tutor')],
+ 3:[T('cie4','CIE Lesson 4','cie'),T('cie5','CIE Lesson 5','cie'),T('read','Read 1 chapter','read')],
+ 4:[T('t-review','Review Lessons 4–6','tutor'),T('t-spell','Spelling activities','tutor'),T('t-vocab','Vocabulary','tutor'),T('t-aloud','Reading aloud','tutor'),T('t-oral','Oral summary','tutor'),T('t-cursive','Cursive practice','tutor')],
+ 5:[T('cie6','CIE Lesson 6','cie'),T('read','Read 1 chapter','read'),T('summary','Write reading summary','summary')],
+ 6:[],
+ 0:[]
+};
+const TYPE_NAME={cie:'CIE',read:'Reading',spell:'Spelling',cursive:'Cursive',summary:'Summary',tutor:'Tutor',plan:'Plan',catch:'Catch-up',custom:'Mine'};
+const FOCUS=[['Genre','Story Elements'],['Tone','Expressing Opinion'],['Summary'],["Author's Purpose"],['Nonfiction Literature'],['Parts of Speech'],['Sentence Structure'],['Punctuation']];
+const SKILLS=['Summary','Word Usage','Stress and Pitch','Biographies','Nonfiction Literature',"Author's Purpose",'Compositions','Parts of Speech','Sentence Structure','Punctuation'];
+const isTutor=ds=>{const w=dowOf(ds);return w===2||w===4};
+const overdueEligible=t=>t.base&&['cie','read','spell','cursive','summary'].includes(t.type)&&!t.id.startsWith('t-');
+
+/* ---------- state ---------- */
+function defaultState(){const t=TODAY();return{v:1,updated:0,name:'Isabella',cycleStart:weekStart(t),trackFrom:t,chaptersPerWeek:3,
+ done:{},custom:[],
+ books:[{id:'ember',title:'City of Ember',author:'Jeanne DuPrau',total:20,status:'current'},{id:'downriver',title:'Downriver',author:'Will Hobbs',total:0,status:'next'},{id:'unteachables',title:'The Unteachables',author:'Gordon Korman',total:0,status:'next'}],
+ readingLog:[],readingWeek:{},spelling:{},cursiveLog:[],cursiveWeek:{},summaries:{},reflections:{},tutorNotes:{},notes:'',weekGoals:{},spellDone:{},cursiveDone:{},cursiveLetters:{}}}
+let S=defaultState();
+const ui={tab:'today',date:TODAY(),month:TODAY().slice(0,7)};
+try{const raw=localStorage.getItem(LS_KEY);if(raw)S=Object.assign(defaultState(),JSON.parse(raw))}catch(e){}
+let local_ok=true,cloud={ref:null,state:'off',busy:false,again:false,timer:null};
+
+function persistLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));local_ok=true}catch(e){local_ok=false}}
+function save(){S.updated=Date.now();persistLocal();setStatus();clearTimeout(cloud.timer);if(cloud.ref)cloud.timer=setTimeout(push,1200)}
+function setStatus(){const el=document.getElementById('savestat');if(!el)return;
+ let txt='Saved on this device',warn=false;
+ if(!local_ok&&cloud.state!=='synced'){txt='Not saved: browser storage is off';warn=true}
+ else if(cloud.state==='synced')txt='Saved and synced to your account';
+ else if(cloud.state==='fail'){txt='Saved on this device (sync paused)';}
+ el.className='status noprint'+(warn?' warn':'');el.innerHTML='<i></i><span>'+txt+'</span>'}
+async function push(){if(!cloud.ref)return;if(cloud.busy){cloud.again=true;return}
+ cloud.busy=true;try{await cloud.ref.set({updated:S.updated,json:JSON.stringify(S)});cloud.state='synced'}catch(e){cloud.state='fail'}
+ cloud.busy=false;setStatus();if(cloud.again){cloud.again=false;push()}}
+async function initCloud(){
+ try{if(!window.claude||!claude.use)return;
+  const[db,user]=await Promise.all([claude.use('db'),claude.use('user')]);if(!db||!user)return;
+  const id=await user.id();if(!id)return;
+  cloud.ref=db.doc('data/users/'+id+'/planner');
+  const snap=await cloud.ref.get();const r=snap.exists?snap.data():null;
+  if(r&&r.json&&(r.updated||0)>(S.updated||0)){S=Object.assign(defaultState(),JSON.parse(r.json));persistLocal();render()}
+  else if(S.updated>0)await push();
+  else cloud.state='synced';
+  if(cloud.state!=='fail')cloud.state='synced';setStatus();
+ }catch(e){}}
+
+/* ---------- queries ---------- */
+function tasksFor(ds){const base=(PLAN[dowOf(ds)]||[]);const cust=S.custom.filter(c=>c.date===ds).map(c=>({id:c.id,label:c.text,type:'custom',base:false,custom:true}));return base.concat(cust)}
+const isDone=(ds,id)=>!!S.done[ds+'|'+id];
+function dayStats(ds){const ts=tasksFor(ds);const done=ts.filter(t=>isDone(ds,t.id)).length;return{total:ts.length,done,pct:ts.length?Math.round(done/ts.length*100):0}}
+const LETTERS=['a, c, d','g, o, q','e, l','h, k, b','f, i, t','u, w, j','n, m, v','x, y, z','p, r, s','A, O, D','C, E, G','Q, S, L','B, P, R','F, T, H','K, M, N','U, V, W','X, Y, Z','I, J','Review: a, c, d, g, o, q','Review: e, l, h, k, b, f','Review: i, t, u, w, j','Review: n, m, v, x, y, z','Review: p, r, s','Review: A, O, D, C, E, G','Review: Q, S, L, B, P, R','Review: F, T, H, K, M, N','Review: U, V, W, X, Y, Z, I, J','Connecting words: the, and, was','Connecting words: said, with, from','Her name: Isabella','Days of the week','Months of the year'];
+const schoolWeek=ws=>Math.round((parse(ws)-parse(weekStart(S.cycleStart)))/(7*864e5))+1;
+const lettersFor=n=>(S.cursiveLetters[n]!=null&&S.cursiveLetters[n]!==''?S.cursiveLetters[n]:LETTERS[n-1])||'';
+function weeklyCheck(kind,ws){const n=schoolWeek(ws);if(n<1||n>32)return'';const on=!!(kind==='spell'?S.spellDone:S.cursiveDone)[n];
+ const lbl=kind==='spell'?'Spelling List '+n+' practiced':'Cursive letters: '+lettersFor(n)+' (pencil and paper)';
+ return`<label class="task t-${kind} ${on?'done':''}"><input type="checkbox" data-act="listCheck" data-kind="${kind}" data-n="${n}" ${on?'checked':''}><span class="box"></span><span class="lbl">${esc(lbl)}</span></label>`}
+function weekStats(ws){let total=0,done=0;const by={cie:[0,0],summary:[0,0]};
+ for(let i=0;i<5;i++){const d=addDays(ws,i);for(const t of tasksFor(d)){total++;const dn=isDone(d,t.id);if(dn)done++;if(t.base&&by[t.type]){by[t.type][1]++;if(dn)by[t.type][0]++}}}
+ const n=schoolWeek(ws);if(n>=1&&n<=32){total+=2;done+=(S.spellDone[n]?1:0)+(S.cursiveDone[n]?1:0)}
+ const chapters=S.readingLog.filter(e=>e.date>=ws&&e.date<=addDays(ws,6)).length;
+ return{total,done,pct:total?Math.round(done/total*100):0,by,chapters}}
+function weekInfo(ws){const diff=Math.round((parse(ws)-parse(weekStart(S.cycleStart)))/(7*864e5));const n=((diff%8)+8)%8;return{num:n+1,cycle:diff>=0?Math.floor(diff/8)+1:1,focus:FOCUS[n]}}
+const curBook=()=>S.books.find(b=>b.status==='current')||null;
+const bookById=id=>S.books.find(b=>b.id===id);
+const readSet=b=>new Set(S.readingLog.filter(e=>e.bookId===b.id).map(e=>e.chapter));
+function nextChapter(b){const r=readSet(b);for(let n=1;n<=(b.total||999);n++)if(!r.has(n))return n;return null}
+function nextTutorDay(from){for(let i=0;i<8;i++){const d=addDays(from,i);if(isTutor(d))return d}return from}
+function overdue(){const out=[];const t=TODAY();let start=addDays(t,-14);if(S.trackFrom>start)start=S.trackFrom;
+ for(let d=start;d<t;d=addDays(d,1)){const ts=tasksFor(d).filter(x=>(overdueEligible(x)||x.custom)&&!isDone(d,x.id));if(ts.length)out.push({date:d,tasks:ts})}return out}
+function streak(){const days=new Set(Object.keys(S.done).filter(k=>S.done[k]).map(k=>k.split('|')[0]));let d=TODAY(),n=0;if(!days.has(d))d=addDays(d,-1);while(days.has(d)){n++;d=addDays(d,-1)}return n}
+function sp(ws){return S.spelling[ws]||(S.spelling[ws]={words:[],quiz:null,notes:''})}
+
+function achievements(){
+ const weeks=new Set([...Object.keys(S.done).map(k=>weekStart(k.split('|')[0])),...S.readingLog.map(e=>weekStart(e.date))]);
+ let perfect=false,three=false;weeks.forEach(w=>{const st=weekStats(w);if(st.total>=10&&st.pct===100)perfect=true;if(st.chapters>=3)three=true});
+ const cursiveDone=Object.values(S.cursiveDone).filter(Boolean).length;
+ const spellN=Object.values(S.spellDone).filter(Boolean).length;
+ const sumOk=Object.keys(S.done).some(k=>S.done[k]&&/\|summary$/.test(k));
+ const bookDone=S.books.some(b=>b.status==='done'||(b.total>0&&readSet(b).size>=b.total));
+ const st=streak();
+ return[
+  {ic:'📖',n:'First Chapter',s:'Log your first chapter',on:S.readingLog.length>0},
+  {ic:'🔥',n:'3-Day Streak',s:'Finish tasks 3 days in a row',on:st>=3},
+  {ic:'🏆',n:'Reading Goal',s:'3 chapters in one week',on:three},
+  {ic:'🌟',n:'Perfect Week',s:'Finish every weekday task',on:perfect},
+  {ic:'✍️',n:'Cursive Star',s:'4 cursive weeks done',on:cursiveDone>=4},
+  {ic:'🐝',n:'Spelling Ace',s:'Finish 4 spelling lists',on:spellN>=4},
+  {ic:'📝',n:'Summary Author',s:'Finish a reading summary',on:sumOk},
+  {ic:'📚',n:'Book Finisher',s:'Read every chapter of a book',on:bookDone}]}
+
+/* ---------- html bits ---------- */
+const bar=(p,c)=>`<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${p}" style="${c?'--c:'+c:''}"><i style="width:${Math.min(100,p)}%"></i></div>`;
+function goalRow(label,done,goal,color){const p=goal?Math.round(Math.min(done,goal)/goal*100):0;return`<div class="goal ${done>=goal?'ok':''}" style="--c:${color}"><b>${label}</b><span class="n">${done}/${goal}</span>${bar(p,color)}</div>`}
+function chapterFor(key){const e=S.readingLog.find(x=>x.src===key);return e?bookById(e.bookId)?.title.replace(/^The /,'')+' ch. '+e.chapter:''}
+function taskRow(ds,t){const key=ds+'|'+t.id,d=!!S.done[key];const tag=t.type==='read'&&d?chapterFor(key):'';
+ return`<div class="tw"><label class="task t-${t.type} ${d?'done':''}"><input type="checkbox" data-act="toggle" data-date="${ds}" data-id="${t.id}" ${d?'checked':''}><span class="box"></span><span class="lbl">${esc(t.label)}</span>${tag?`<span class="tag">${esc(tag)}</span>`:''}</label>${t.custom?`<button class="x noprint" data-act="delTask" data-id="${t.id}" aria-label="Remove task">✕</button>`:''}</div>`}
+function weekNav(){const ws=weekStart(ui.date),we=addDays(ws,6),wi=weekInfo(ws);
+ return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevWeek">‹ Last week</button><div class="ttl">${short(ws)} – ${short(we)}<div class="hint">Week ${wi.num} of 8 · ${wi.focus.map(esc).join(' + ')}</div></div><button class="btn ghost sm" data-act="nextWeek">Next week ›</button></div>
+ ${ws!==weekStart(TODAY())?'<div class="row noprint" style="justify-content:center"><button class="btn sm" data-act="thisWeek">Back to this week</button></div>':''}`}
+function weekGoalsHTML(ws){const st=weekStats(ws);
+ return`<div class="card"><div class="row between"><h2>Weekly goals</h2><span class="badge gold">${st.pct}% done</span></div>
+  ${bar(st.pct,'var(--brand)')}
+  ${goalRow('6 CIE Language Arts lessons',st.by.cie[0],6,'var(--cie)')}
+  ${goalRow('Reading: chapters from the novel',st.chapters,S.chaptersPerWeek,'var(--read)')}
+  ${goalRow('One reading summary',st.by.summary[0],1,'var(--summary)')}
+  <div class="tasks">${weeklyCheck('spell',ws)}${weeklyCheck('cursive',ws)}</div></div>`}
+function dayCard(ds){const tut=isTutor(ds),st=dayStats(ds);
+ return`<section class="day ${tut?'tutor':''} ${ds===TODAY()?'today':''}"><header><button class="dayname" data-act="gotoDay" data-date="${ds}"><b>${DOW[dowOf(ds)]}</b><span>${short(ds)}</span></button>${tut?'<span class="badge gold">⭐ Tutor · 30 min</span>':''}${st.total?`<span class="cnt">${st.done}/${st.total}</span>`:''}</header>${st.total?bar(st.pct,tut?'var(--tutor)':'var(--brand)'):''}<div class="tasks">${tasksFor(ds).map(t=>taskRow(ds,t)).join('')||'<p class="muted small">Free day. No assignments.</p>'}</div></section>`}
+
+function overdueHTML(){const od=overdue();
+ if(!od.length)return`<div class="card ok-box"><h2>All caught up!</h2><p>No missing work. Great job staying on track.</p></div>`;
+ const n=od.reduce((a,x)=>a+x.tasks.length,0),nt=nextTutorDay(TODAY());
+ return`<div class="card od"><div class="row between"><h2>Missing work (${n})</h2><span class="badge gold">⭐ Review ${nt===TODAY()?'today':DOW[dowOf(nt)]+' '+short(nt)}</span></div>
+  <p class="small">Keep moving forward with today's work. Your tutor will help you go over these at the next tutoring session.</p>
+  ${od.map(x=>`<div><div class="small muted" style="font-weight:800;margin-bottom:4px">${longDate(x.date)}</div><div class="tasks">${x.tasks.map(t=>taskRow(x.date,t)).join('')}</div></div>`).join('')}</div>`}
+
+/* ---------- views ---------- */
+function viewToday(){const ds=ui.date,tut=isTutor(ds),st=dayStats(ds),wi=weekInfo(weekStart(ds));
+ const msg=st.total===0?'No assignments today. Enjoy your free day!':st.total&&st.done===st.total?'Everything is done for today. Awesome work!':st.done?'Nice! Keep going, you are doing great.':'Pick one thing and get started.';
+ return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevDay">‹ Yesterday</button><div class="ttl">${longDate(ds)}${ds===TODAY()?' <span class="badge today">Today</span>':''}</div><button class="btn ghost sm" data-act="nextDay">Tomorrow ›</button></div>
+ ${ds!==TODAY()?'<div class="row noprint" style="justify-content:center"><button class="btn sm" data-act="today">Jump to today</button></div>':''}
+ ${ds===TODAY()||ds>TODAY()?'':''}
+ <div class="grid2">
+  <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+   <div class="card" style="${tut?'border-color:var(--tutor)':''}">
+    <div class="row between"><h2>Today's tasks</h2>${tut?'<span class="badge gold">⭐ Tutoring session · 30 minutes</span>':''}</div>
+    ${tut?'<p class="small">Tutor time is for new ideas, reading aloud, spelling and cursive. If a lesson felt hard, bring your question.</p>':''}
+    <div class="row"><b class="n" style="font-family:var(--display)">${st.done}/${st.total}</b><div style="flex:1;min-width:120px">${bar(st.pct,tut?'var(--tutor)':'var(--brand)')}</div></div>
+    <div class="tasks">${tasksFor(ds).map(t=>taskRow(ds,t)).join('')}</div>
+    <p class="small" style="font-weight:800">${msg}</p>
+    <div class="row noprint"><input type="text" id="newTask" data-enter="addTask" placeholder="Add my own task (like tutor homework)" style="flex:1;min-width:180px"><button class="btn sm" data-act="addTask">Add</button></div>
+   </div>
+   <div class="card"><h3>Week ${wi.num} focus</h3><div class="chips">${wi.focus.map(f=>`<span class="chip" style="color:var(--brand)">${esc(f)}</span>`).join('')}</div></div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px;min-width:0">${overdueHTML()}${weekGoalsHTML(weekStart(ds))}</div>
+ </div>
+ <div class="card"><div class="row between"><h2>My achievements</h2><span class="badge gold">🔥 ${streak()}-day streak</span></div>
+  <div class="achv">${achievements().map(a=>`<div class="a ${a.on?'on':''}"><span class="ic">${a.ic}</span><b>${a.n}</b><span class="s">${a.s}</span></div>`).join('')}</div></div>`}
+
+function viewWeek(){const ws=weekStart(ui.date),wi=weekInfo(ws);
+ return`${weekNav()}
+ <div class="row noprint between"><span class="hint">To print this page, press Ctrl+P (Cmd+P on a Mac), or save a clean copy.</span><button class="btn sm" data-act="savePrintWeek">Save printable week</button></div>
+ ${weekGoalsHTML(ws)}
+ <div class="days">${[0,1,2,3,4,5,6].map(i=>dayCard(addDays(ws,i))).join('')}</div>
+ <div class="card"><h3>Skills we are building</h3><div class="chips">${SKILLS.map(s=>`<span class="chip skill ${wi.focus.includes(s)?'on':''}">${esc(s)}</span>`).join('')}</div><p class="hint">Filled in = this week's focus. The others keep growing through reading, writing and tutoring.</p></div>
+ <div class="card"><h3>8-week Language Arts plan</h3><div class="roadmap">${FOCUS.map((f,i)=>`<div class="rw ${i+1===wi.num?'cur':''}"><b>Week ${i+1}</b>${f.map(esc).join(', ')}</div>`).join('')}</div></div>`}
+
+function viewMonth(){const[y,m]=ui.month.split('-').map(Number),first=iso(new Date(y,m-1,1)),last=iso(new Date(y,m,0)),t=TODAY();
+ let ws=weekStart(first),html='';
+ while(ws<=last){const wi=weekInfo(ws),st=weekStats(ws);
+  html+=`<div class="wkcap"><span>Week ${wi.num}: ${wi.focus.map(esc).join(' + ')}</span><span>${st.pct}% done</span></div><div class="mrow">`;
+  for(let i=0;i<7;i++){const d=addDays(ws,i),ds=dayStats(d),inM=d.slice(0,7)===ui.month,tut=isTutor(d);
+   const late=d<t&&d>=S.trackFrom&&tasksFor(d).some(x=>(overdueEligible(x)||x.custom)&&!isDone(d,x.id));
+   html+=`<button class="cell ${inM?'':'out'} ${tut?'tutor':''} ${d===t?'today':''} ${late?'late':''} ${ds.total&&ds.done===ds.total?'full':''}" data-act="gotoDay" data-date="${d}" aria-label="${longDate(d)}, ${ds.done} of ${ds.total} done"><span class="d"><span>${parse(d).getDate()}</span>${tut?'<span>⭐</span>':''}</span>${ds.total?`<span class="ct">${ds.done}/${ds.total}</span>${bar(ds.pct,tut?'var(--tutor)':'var(--brand)')}`:''}<span class="st small muted">${late?'Missing work':tut?'Tutoring':''}</span></button>`}
+  html+='</div>';ws=addDays(ws,7)}
+ return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevMonth">‹ Prev</button><div class="ttl">${MON[m-1]} ${y}</div><button class="btn ghost sm" data-act="nextMonth">Next ›</button></div>
+ <div class="row noprint between"><span class="hint">Tap a day to open its task list. ⭐ = tutoring day. Print with Ctrl+P (Cmd+P).</span><span class="row"><button class="btn ghost sm" data-act="thisMonth">This month</button><button class="btn sm" data-act="savePrintMonth">Save printable month</button></span></div>
+ <div class="card"><div class="mhead">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div>${d}</div>`).join('')}</div>${html}</div>`}
+
+function viewReading(){const ws=weekStart(ui.date),b=curBook(),rw=S.readingWeek[ws]||{},st=weekStats(ws);
+ let cur='<div class="card"><h2>No current book</h2><p>Choose "Make current" on a book below.</p></div>';
+ if(b){const r=readSet(b),n=nextChapter(b),p=b.total?Math.round(r.size/b.total*100):0;
+  cur=`<div class="card" style="border-color:var(--read)"><div class="row between"><div><span class="small muted" style="font-weight:800">I'M READING</span><h2>${esc(b.title)}</h2><div class="small muted">by ${esc(b.author)}</div></div>
+   <label class="f" style="width:150px">Total chapters<input type="number" min="0" max="200" value="${b.total||''}" data-bind="books.${S.books.indexOf(b)}.total" data-num="1" data-re="1" placeholder="Enter number"></label></div>
+   ${b.total?`<div class="goal" style="--c:var(--read)"><b>${r.size} of ${b.total} chapters read</b><span class="n">${p}%</span>${bar(p,'var(--read)')}</div>
+   <div class="chapters">${Array.from({length:b.total},(_,i)=>i+1).map(c=>`<button class="ch ${r.has(c)?'on':''} ${c===n?'next':''}" data-act="chap" data-n="${c}" aria-pressed="${r.has(c)}" aria-label="Chapter ${c}">${c}</button>`).join('')}</div>
+   <p class="hint">${n?`Next up: chapter ${n}. Checking "Read 1 chapter" in your daily list marks it here. You can also tap a number.`:'You read every chapter. Mark the book finished below!'}</p>`
+   :`<p>Enter how many chapters this book has (check your copy) to see the chapter map. You have read ${r.size} so far.</p>`}</div>`}
+ const sched=[[1,'Mon'],[3,'Wed'],[5,'Fri']].map(([i,l])=>{const d=addDays(ws,i-1),dn=isDone(d,'read');return`<span class="badge" style="background:${dn?'var(--read)':'var(--surface2)'};color:${dn?'var(--chk)':'var(--ink)'};border:2px solid var(--read)">${l} ${dn?'✓':'1 chapter'}</span>`}).join(' ');
+ return`${weekNav()}
+ <div class="grid2"><div style="display:flex;flex-direction:column;gap:16px;min-width:0">${cur}</div>
+ <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+  <div class="card"><h2>This week's reading</h2>${goalRow('Chapters read',st.chapters,S.chaptersPerWeek,'var(--read)')}
+   <div class="row">${sched}</div><p class="hint">Suggested schedule: Monday, Wednesday, and Friday or Saturday.</p>
+   <p><b>Assigned this week:</b> ${(()=>{const b=curBook();if(!b)return'-';const n=nextChapter(b);return n?'chapter '+n+(S.chaptersPerWeek>1?' and the next '+(S.chaptersPerWeek-1):''):'finished!'})()}</p></div>
+ </div></div>
+ <div class="card"><h2>My bookshelf</h2>${S.books.map((x,i)=>`<div class="book ${x.status==='current'?'cur':''}"><div class="meta"><b>${esc(x.title)}</b><div class="small muted">${esc(x.author)} · ${readSet(x).size}${x.total?'/'+x.total:''} chapters · ${x.status==='current'?'Reading now':x.status==='done'?'Finished':'Up next'}</div></div>
+   ${x.status!=='current'?`<button class="btn sm ${x.status==='done'?'ghost':''}" data-act="bookCur" data-i="${i}">Make current</button>`:''}${x.status!=='done'?`<button class="btn ghost sm" data-act="bookDone" data-i="${i}">Mark finished</button>`:''}</div>`).join('')}
+  <div class="row noprint"><input type="text" id="bkTitle" placeholder="Add a book title" style="flex:1;min-width:160px"><input type="text" id="bkAuth" placeholder="Author" style="flex:1;min-width:120px"><button class="btn sm" data-act="addBook">Add book</button></div></div>
+ <div class="card"><h2>Reading log</h2>${S.readingLog.length?`<div class="scroll"><table class="tbl"><thead><tr><th>Date</th><th>Book</th><th>Ch.</th><th></th></tr></thead><tbody>
+  ${S.readingLog.map((e,i)=>({e,i})).sort((a,c)=>c.e.date.localeCompare(a.e.date)||c.e.chapter-a.e.chapter).map(({e,i})=>`<tr><td style="white-space:nowrap">${short(e.date)}</td><td>${esc(bookById(e.bookId)?.title||'')}</td><td>${e.chapter}</td><td><button class="x" data-act="delLog" data-i="${i}" aria-label="Delete entry">✕</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No chapters logged yet. Check off "Read 1 chapter" to start your log.</p>'}</div>`}
+
+function listGrid(kind){const cur=schoolWeek(weekStart(TODAY())),store=kind==='spell'?S.spellDone:S.cursiveDone;
+ return`<div class="lists">${Array.from({length:32},(_,i)=>i+1).map(n=>{const on=!!store[n];
+  return`<label class="task t-${kind} ${on?'done':''} ${n===cur?'cur':''}"><input type="checkbox" data-act="listCheck" data-kind="${kind}" data-n="${n}" ${on?'checked':''}><span class="box"></span><span class="lbl">${kind==='spell'?'List '+n:'<b>Week '+n+'</b><br><span class="small">'+esc(lettersFor(n))+'</span>'}</span>${n===cur?'<span class="tag">this week</span>':''}</label>`}).join('')}</div>`}
+
+function viewSpelling(){const n=schoolWeek(weekStart(TODAY())),done=Object.keys(S.spellDone).filter(k=>S.spellDone[k]).length;
+ return`<div class="card" style="border-color:var(--spell)"><div class="row between"><h2>Spelling lists</h2><span class="badge" style="background:var(--spell);color:var(--chk)">${done} of 32 done</span></div>
+  ${bar(Math.round(done/32*100),'var(--spell)')}
+  <p>${n>=1&&n<=32?`This week's list is <b>List ${n}</b>. Check the box when you have practiced it.`:'Check each list after you practice it. One list every week.'}</p>
+  ${listGrid('spell')}</div>`}
+
+function viewCursive(){const ws=weekStart(TODAY()),n=schoolWeek(ws),ok=n>=1&&n<=32,done=Object.keys(S.cursiveDone).filter(k=>S.cursiveDone[k]).length;
+ return`<div class="card" style="border-color:var(--cursive)"><div class="row between"><h2>Cursive letters this week</h2><span class="badge" style="background:var(--cursive);color:var(--chk)">${done} of 32 weeks done</span></div>
+  ${ok?`<div class="bigscript">${esc(lettersFor(n))}</div><div class="tasks">${weeklyCheck('cursive',ws)}</div><p class="hint">Practice these letters with pencil and paper, then check the box.</p>
+  <details class="noprint"><summary>Change this week's letters</summary><label class="f" style="margin-top:8px">Letters<input type="text" data-bind="cursiveLetters.${n}" data-re="1" value="${esc(lettersFor(n))}"></label></details>`:'<p>No letters are planned for this week. Set the start date in Settings.</p>'}
+  ${bar(Math.round(done/32*100),'var(--cursive)')}</div>
+ <div class="card"><h2>Letters for every week</h2>${listGrid('cursive')}</div>`}
+
+function viewTutor(){const ws=weekStart(ui.date),sessions=[addDays(ws,1),addDays(ws,3)],od=overdue();
+ const f=(ds,k,l,ph)=>`<label class="f">${l}<textarea data-bind="tutorNotes.${ds}.${k}" style="min-height:76px" placeholder="${ph}">${esc((S.tutorNotes[ds]||{})[k]||'')}</textarea></label>`;
+ return`${weekNav()}
+ <div class="two">${sessions.map(ds=>`<div class="card" style="border-color:var(--tutor)"><div class="row between"><h2>${DOW[dowOf(ds)]}, ${short(ds)}</h2><span class="badge gold">⭐ 30 min</span></div>
+  ${f(ds,'covered','What we worked on','Reading aloud, new idea…')}${f(ds,'practice','Needs more practice','Skills to keep working on')}${f(ds,'next','Plan for next time','Goals from my tutor')}</div>`).join('')}</div>
+ <div class="card"><h2>To review with my tutor</h2>${od.length?`<div class="tasks">${od.flatMap(x=>x.tasks.map(t=>`<div class="note-item" style="--c:var(--late)"><b>${esc(t.label)}</b> <span class="small muted">· ${longDate(x.date)}</span></div>`)).join('')}</div>`:'<p class="muted">No missing work right now.</p>'}</div>`}
+
+function viewSettings(){
+ return`<div class="card"><h2>Planner settings</h2>
+  <div class="row"><label class="f">Student name<input type="text" data-bind="name" data-re="1" value="${esc(S.name)}"></label>
+  <label class="f">Week 1 starts on (Monday)<input type="date" data-bind="cycleStart" data-re="1" value="${S.cycleStart}"></label>
+  <label class="f">Count missing work from<input type="date" data-bind="trackFrom" data-re="1" value="${S.trackFrom}"></label>
+  <label class="f" style="width:150px">Chapters per week<input type="number" min="1" max="14" data-bind="chaptersPerWeek" data-num="1" data-re="1" value="${S.chaptersPerWeek}"></label></div>
+  <p class="hint">Week 1 sets spelling List 1, the first cursive letters and the first Language Arts focus.</p>
+  <h3>Backup</h3><p class="hint">Everything is saved in this browser automatically${cloud.ref?' and in your Claude account':''}. A backup file is extra protection.</p>
+  <div class="row"><button class="btn sm" data-act="export">Save backup file</button><label class="btn ghost sm" style="cursor:pointer">Restore from backup<input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div>`}
+
+const TABS=[['today','Today'],['week','Week'],['month','Month'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive'],['tutor','Tutor'],['settings','Settings']];
+const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,reading:viewReading,spelling:viewSpelling,cursive:viewCursive,tutor:viewTutor,settings:viewSettings};
+
+function render(){
+ document.getElementById('nameLine').textContent=(S.name||'My')+(S.name?"'s":'');
+ const ws=weekStart(TODAY()),st=weekStats(ws),wi=weekInfo(ws);
+ const m=st.pct===100?'Perfect week! You finished everything!':st.pct>=80?'Almost there! Finish strong!':st.pct>=40?'More than halfway. Keep it up!':st.pct>0?'Great start. One task at a time!':'Fresh week! Begin with one lesson.';
+ document.getElementById('hero').innerHTML=`<div><div class="kick">This week · ${short(ws)} – ${short(addDays(ws,6))}</div><h2>Week ${wi.num}: ${wi.focus.map(esc).join(' + ')}</h2></div><div class="pct">${st.pct}%</div>${bar(st.pct)}<div class="msg">${m}</div>`;
+ document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button class="tab" data-act="tab" data-tab="${k}" ${ui.tab===k?'aria-current="page"':''}>${l}</button>`).join('');
+ document.getElementById('view').innerHTML=VIEWS[ui.tab]();
+ setStatus()}
+
+/* ---------- actions ---------- */
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600)}
+function toggleTask(ds,id,on){const key=ds+'|'+id,t=tasksFor(ds).find(x=>x.id===id);
+ if(on)S.done[key]=true;else delete S.done[key];
+ if(t&&t.type==='read'){
+  if(on){const b=curBook();if(b){const n=nextChapter(b);if(n)S.readingLog.push({id:uid(),date:ds,bookId:b.id,chapter:n,note:'',src:key})}}
+  else S.readingLog=S.readingLog.filter(e=>e.src!==key)}
+ save();render();
+ if(on){const ds2=dayStats(ds);if(ds2.total&&ds2.done===ds2.total)toast('Everything done for the day. Awesome work!');
+  else if(t&&t.type==='read')toast('Chapter logged in your reading tracker');}}
+
+const A={
+ tab:e=>{ui.tab=e.dataset.tab;render();window.scrollTo(0,0)},
+ toggle:()=>{},
+ prevDay:()=>{ui.date=addDays(ui.date,-1);render()},nextDay:()=>{ui.date=addDays(ui.date,1);render()},today:()=>{ui.date=TODAY();render()},
+ prevWeek:()=>{ui.date=addDays(ui.date,-7);render()},nextWeek:()=>{ui.date=addDays(ui.date,7);render()},thisWeek:()=>{ui.date=TODAY();render()},
+ prevMonth:()=>shiftMonth(-1),nextMonth:()=>shiftMonth(1),thisMonth:()=>{ui.month=TODAY().slice(0,7);render()},
+ gotoDay:e=>{ui.date=e.dataset.date;ui.tab='today';render();window.scrollTo(0,0)},
+ addTask:()=>{const el=document.getElementById('newTask'),v=el.value.trim();if(!v)return;S.custom.push({id:'c'+uid(),date:ui.date,text:v});save();render()},
+ delTask:e=>{S.custom=S.custom.filter(c=>c.id!==e.dataset.id);delete S.done[ui.date+'|'+e.dataset.id];save();render()},
+ chap:e=>{const b=curBook();if(!b)return;const n=+e.dataset.n,i=S.readingLog.findIndex(x=>x.bookId===b.id&&x.chapter===n);
+  if(i>=0){const src=S.readingLog[i].src;S.readingLog.splice(i,1);if(src)delete S.done[src]}else S.readingLog.push({id:uid(),date:TODAY(),bookId:b.id,chapter:n,note:'',src:''});save();render()},
+ bookCur:e=>{S.books.forEach(b=>{if(b.status==='current')b.status='next'});S.books[+e.dataset.i].status='current';save();render()},
+ bookDone:e=>{const b=S.books[+e.dataset.i],was=b.status==='current';b.status='done';if(was){const nx=S.books.find(x=>x.status==='next');if(nx)nx.status='current'}save();render();toast('Book finished! What an achievement!')},
+ addBook:()=>{const t=document.getElementById('bkTitle').value.trim();if(!t)return;S.books.push({id:'b'+uid(),title:t,author:document.getElementById('bkAuth').value.trim(),total:0,status:'next'});save();render()},
+ delLog:e=>{const x=S.readingLog.splice(+e.dataset.i,1)[0];if(x&&x.src)delete S.done[x.src];save();render()},
+ setval:e=>{setPath(S,e.dataset.path,e.dataset.val);save();render()},
+ export:async()=>{try{const d=await claude.use('downloads');if(!d){toast('Saving files is not available here');return}await d.save({filename:'isabella-planner-backup.json',data:JSON.stringify(S,null,1)});toast('Backup saved')}catch(err){if(!err||err.code!=='declined')toast('Could not save the backup')}},
+ savePrintWeek:()=>savePrint('week'),savePrintMonth:()=>savePrint('month')
+};
+function shiftMonth(n){const[y,m]=ui.month.split('-').map(Number),d=new Date(y,m-1+n,1);ui.month=d.getFullYear()+'-'+pad(d.getMonth()+1);render()}
+
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='INPUT')return;const f=A[el.dataset.act];if(f)f(el)});
+document.addEventListener('change',e=>{const el=e.target;
+ if(el.dataset.act==='toggle'){toggleTask(el.dataset.date,el.dataset.id,el.checked);return}
+ if(el.dataset.act==='listCheck'){const st=el.dataset.kind==='spell'?S.spellDone:S.cursiveDone;if(el.checked)st[el.dataset.n]=true;else delete st[el.dataset.n];save();render();if(el.checked)toast(el.dataset.kind==='spell'?'Spelling list done. Great job!':'Cursive practice done. Beautiful!');return}
+ if(el.id==='importFile'&&el.files[0]){el.files[0].text().then(t=>{try{S=Object.assign(defaultState(),JSON.parse(t));save();render();toast('Backup restored')}catch(err){toast('That file is not a planner backup')}});return}
+ if(el.dataset.bind&&el.dataset.re){let v=el.value;if(el.dataset.num)v=v===''?0:+v;setPath(S,el.dataset.bind,v);save();render()}});
+document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.bind||el.dataset.re)return;
+ let v=el.value;if(el.dataset.num)v=v===''?0:+v;setPath(S,el.dataset.bind,v);save();
+ if(el.dataset.count)document.getElementById(el.dataset.count).textContent=words(v)+' words'});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.enter){e.preventDefault();A[e.target.dataset.enter]()}});
+
+/* ---------- printable pages (saved as a file because the viewer cannot open the print dialog) ---------- */
+const PCSS='body{font-family:Arial,sans-serif;color:#000;margin:18px}h1{margin:0;font-size:22px}h2{font-size:14px;margin:8px 0 4px}.sub{color:#444;font-size:12px;margin-bottom:10px}.g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.d{border:1px solid #666;border-radius:6px;padding:6px;break-inside:avoid;font-size:12px}.d.t{border:2px solid #000;background:#f1f1f1}.d b{display:block;font-size:13px}.i{margin:3px 0}.m{display:grid;grid-template-columns:repeat(7,1fr)}.m div{border:1px solid #666;min-height:70px;padding:3px;font-size:11px}.m .h{min-height:0;background:#eee;font-weight:bold;text-align:center}.m .t{background:#f1f1f1}.n{border-bottom:1px solid #999;height:20px}@page{size:landscape;margin:10mm}';
+function pdoc(title,body){return`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${PCSS}</style></head><body>${body}</body></html>`}
+async function savePrint(kind){let html,name;
+ if(kind==='week'){const ws=weekStart(ui.date),wi=weekInfo(ws),st=weekStats(ws);name='planner-week-'+ws+'.html';
+  html=pdoc('Week of '+ws,`<h1>${esc(S.name)}'s Planner · ${short(ws)} – ${short(addDays(ws,6))}</h1><div class="sub">Week ${wi.num} of 8: ${wi.focus.map(esc).join(' + ')} · Goals: 6 CIE lessons (${st.by.cie[0]}/6), ${S.chaptersPerWeek} chapters (${st.chapters}/${S.chaptersPerWeek}), one reading summary</div><div class="g">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i);return`<div class="d ${isTutor(d)?'t':''}"><b>${DOW[dowOf(d)]} ${short(d)}${isTutor(d)?' ★ Tutoring (30 min)':''}</b>${tasksFor(d).map(t=>`<div class="i">${isDone(d,t.id)?'☑':'☐'} ${esc(t.label)}</div>`).join('')||'<div class="i">Free day</div>'}</div>`}).join('')}<div class="d"><b>This week</b>${(()=>{const n=schoolWeek(ws);return n>=1&&n<=32?`<div class="i">${S.spellDone[n]?'☑':'☐'} Spelling List ${n}</div><div class="i">${S.cursiveDone[n]?'☑':'☐'} Cursive: ${esc(lettersFor(n))}</div>`:''})()}</div></div>`)}
+ else{const[y,m]=ui.month.split('-').map(Number),first=iso(new Date(y,m-1,1)),last=iso(new Date(y,m,0));name='planner-month-'+ui.month+'.html';
+  let cells='';for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7))for(let i=0;i<7;i++){const d=addDays(ws,i),inM=d.slice(0,7)===ui.month;cells+=`<div class="${isTutor(d)&&inM?'t':''}">${inM?`<b>${parse(d).getDate()}</b>${isTutor(d)?' ★ Tutoring':''}<br>${(dowOf(d)===1&&0)?'':''}`:''}</div>`}
+  const wk=[];for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7)){const wi=weekInfo(ws);wk.push(`Week ${wi.num} (${short(ws)}): ${wi.focus.join(' + ')}`)}
+  html=pdoc(MON[m-1]+' '+y,`<h1>${MON[m-1]} ${y} · ${esc(S.name)}'s Planner</h1><div class="sub">★ = tutoring day (Tuesday and Thursday, 30 minutes)<br>${wk.map(esc).join(' · ')}</div><div class="m">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="h">${x}</div>`).join('')}${cells}</div>`)}
+ try{const d=await claude.use('downloads');if(!d){toast('Use Ctrl+P (Cmd+P) to print this page');return}await d.save({filename:name,data:html});toast('Saved. Open the file and print it.')}catch(err){if(!err||err.code!=='declined')toast('Could not save. Try Ctrl+P (Cmd+P) instead.')}}
+
+render();initCloud();
+</script>
+
+</body></html>
