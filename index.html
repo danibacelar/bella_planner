@@ -43,22 +43,37 @@ label.f{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.9r
 .grid2>*{min-width:0}
 
 /* header */
-.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
-.brand{display:flex;flex-direction:column;line-height:1}
-.script{font-family:var(--script);font-size:2.3rem;color:var(--cursive)}
-.brand .title{font-family:var(--display);font-size:1.15rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
-.status{font-size:.85rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:14px 24px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1;gap:2px}
+.script{font-family:var(--script);font-size:clamp(3rem,9vw,4.6rem);line-height:1;color:var(--cursive)}
+.brand .title{font-family:var(--display);font-size:clamp(1.2rem,3.6vw,1.8rem);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.status{font-size:.85rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:6px}
 .status i{width:10px;height:10px;border-radius:50%;background:var(--good);display:inline-block}
 .status.warn i{background:var(--spell)}
-.hero{background:var(--brand);color:var(--brand-ink);border-radius:24px;padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:8px 20px;align-items:center}
-.hero .kick{font-weight:800;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
-.hero h2{font-size:1.5rem}
-.hero .pct{font-family:var(--display);font-size:2.6rem;line-height:1;grid-row:1/3;grid-column:2}
-.hero .bar{grid-column:1/3;background:color-mix(in srgb,var(--brand-ink) 28%,transparent);height:16px}
-.hero .bar i{background:var(--brand-ink)}
-.hero .msg{grid-column:1/3;font-weight:700}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{border:2px solid currentColor;border-radius:999px;padding:1px 10px;font-size:.82rem;font-weight:800}
+.weekbadge{background:var(--brand);color:var(--brand-ink);border-radius:20px;padding:12px 18px;display:flex;flex-direction:column;gap:3px;min-width:min(100%,230px);box-shadow:0 5px 0 color-mix(in srgb,var(--brand) 55%,#000)}
+.weekbadge .k{font-weight:800;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;opacity:.9}
+.weekbadge .d{font-family:var(--display);font-size:1.4rem;line-height:1.15}
+.weekbadge .l{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.weekbadge .p{background:var(--tutor);color:#2a2150;border-radius:999px;padding:1px 12px;font-weight:800;font-size:.95rem}
+.hero{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:10px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:center}
+.hero .lab{font-weight:800}
+.hero .pct{font-family:var(--display);font-size:1.5rem;line-height:1}
+.hero .msg{grid-column:1/4;font-size:.9rem;font-weight:700;color:var(--muted)}
+.goalhero{background:var(--read);color:var(--chk);border-radius:22px;padding:20px 22px;display:flex;flex-direction:column;gap:6px;box-shadow:0 5px 0 color-mix(in srgb,var(--read) 55%,#000)}
+.goalhero .gk{font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:.9rem}
+.goalhero .gt{font-family:var(--display);font-size:clamp(2rem,6vw,3rem);line-height:1.1}
+.goalhero .gs{font-weight:700;opacity:.9}
+.goalhero .gb{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;font-weight:800;margin-top:6px}
+.goalhero .bar{background:color-mix(in srgb,var(--chk) 25%,transparent);height:16px}.goalhero .bar i{background:var(--chk)}
+.goalhero .gm{background:color-mix(in srgb,var(--chk) 18%,transparent);border-radius:12px;padding:8px 12px;font-weight:800;margin-top:6px}
+.rpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.rpc{border:2px solid var(--line);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;background:var(--surface2)}
+.rpc .em{font-size:1.9rem;line-height:1.1}.rpc .rch{font-family:var(--display);font-size:1.15rem}
+.rpc.done{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,var(--surface))}
+.rpc.late{border-color:var(--late);background:color-mix(in srgb,var(--late) 10%,var(--surface))}
+.rpc.late .st{color:var(--late);font-weight:800}
+.rpc.now{border-color:var(--read)}.rpc.sel{box-shadow:0 0 0 3px var(--brand)}
+.rpc .bar{margin-top:6px;height:8px}
 .hero .chip{border-color:color-mix(in srgb,var(--brand-ink) 55%,transparent)}
 
 /* tabs */
@@ -179,6 +194,7 @@ details>summary{cursor:pointer;font-weight:800}
   body{padding:0}.wrap{max-width:none}
   .card,.day,.cell{break-inside:avoid;border-width:1px}
   .hero{border:1px solid #000;color:#000;background:#fff}.hero .bar{background:#ddd}.hero .bar i{background:#000}
+  .weekbadge,.goalhero{background:#fff;color:#000;border:1px solid #000;box-shadow:none}.weekbadge .p{background:#fff;border:1px solid #000}.goalhero .bar i{background:#000}
   .bar{border:1px solid #777}
   @page{margin:12mm}
 }
@@ -186,8 +202,9 @@ details>summary{cursor:pointer;font-weight:800}
 
 <div class="wrap">
   <div class="top">
-    <div class="brand"><span class="script" id="nameLine">Isabella's</span><span class="title">Study Planner</span></div>
-    <div class="status noprint" id="savestat"><i></i><span>Saved</span></div>
+    <div class="brand"><span class="script" id="nameLine">Isabella's</span><span class="title">Study Planner</span>
+      <div class="status noprint" id="savestat"><i></i><span>Saved</span></div></div>
+    <div class="weekbadge" id="weekbadge"></div>
   </div>
   <section class="hero" id="hero"></section>
   <nav class="tabs noprint" id="tabs" aria-label="Planner sections"></nav>
@@ -227,6 +244,11 @@ const PACE=[6,6,6,6,6,6,6,4,4,4,3];
 const READ_GOALS=[0,2,2,2,2,2,2,2,2,2,1];
 const readGoal=ws=>{const k=schoolWeek(ws)-1;return k>=0?(READ_GOALS[k]||0):0};
 function readPlan(ws){const k=schoolWeek(ws)-1,goal=readGoal(ws);if(!goal)return null;const from=1+READ_GOALS.slice(0,k).reduce((a,b)=>a+b,0);return{week:k+1,goal,from,to:from+goal-1}}
+function readItems(ws){const out=[];for(let i=0;i<5;i++){const d=addDays(ws,i),t=planFor(d).find(x=>x.type==='read');if(t)out.push({date:d,ch:t.chapter})}return out}
+function planChaptersRead(ws){const rp=readPlan(ws);if(!rp)return S.readingLog.filter(e=>e.date>=ws&&e.date<=addDays(ws,6)).length;
+ const b=bookById('ember');if(!b)return 0;const r=readSet(b);let c=0;for(let n=rp.from;n<=rp.to;n++)if(r.has(n))c++;return c}
+function behindChapters(){const b=bookById('ember');if(!b)return[];const r=readSet(b),t=TODAY(),out=[];
+ READ_GOALS.forEach((g,k)=>{if(g)readItems(addDays(weekStart(S.cycleStart),7*k)).forEach(x=>{if(x.date<t&&!r.has(x.ch))out.push(x.ch)})});return out}
 const chRange=rp=>rp.from===rp.to?'chapter '+rp.from:'chapters '+rp.from+'–'+rp.to;
 function fixBooks(x){const e=x.books&&x.books.find(b=>b.id==='ember');if(e&&e.total===20)e.total=19;return x}
 /* How many lessons fall on Monday, Wednesday, Friday for a week of n lessons. */
@@ -238,7 +260,7 @@ function planFor(ds){const dw=dowOf(ds),lw=lessonWeek(weekStart(ds));
  const [mon,wed,fri]=sp,f=lw?lw.first:0;
  const les=(from,count,k0)=>Array.from({length:count},(_,i)=>T('cie'+(k0+i),'CIE Lesson '+(from+i),'cie'));
  const rng=(a,b)=>a===b?'lesson '+a:'lessons '+a+'–'+b;
- const rg=readGoal(weekStart(ds)),rd=rg>=3?[1,3,5]:rg===2?[1,3]:rg===1?[3]:[],rt=rd.includes(dw)?[T('read','Read 1 chapter','read')]:[];
+ const rg=readGoal(weekStart(ds)),rd=rg>=3?[1,3,5]:rg===2?[1,3]:rg===1?[3]:[],rpl=readPlan(weekStart(ds)),rt=rd.includes(dw)?[Object.assign(T('read','Read Ch. '+(rpl.from+rd.indexOf(dw))+' - '+(bookById('ember')?bookById('ember').title:'City of Ember'),'read'),{chapter:rpl.from+rd.indexOf(dw),bookId:'ember'})]:[];
  const tutor=label=>[T('t-review',label,'tutor'),T('t-spell','Spelling activities','tutor'),T('t-cursive','Cursive practice','tutor')];
  if(dw===1)return[...les(f,mon,1),...rt];
  if(dw===2)return tutor(mon>0?'Review '+rng(f,f+mon-1):'Review lessons');
@@ -247,8 +269,6 @@ function planFor(ds){const dw=dowOf(ds),lw=lessonWeek(weekStart(ds));
  if(dw===5)return[...les(f+mon+wed,fri,mon+wed+1),...rt,...(rg>0?[T('summary','Write reading summary','summary')]:[])];
  return[]}
 const TYPE_NAME={cie:'CIE',read:'Reading',spell:'Spelling',cursive:'Cursive',summary:'Summary',tutor:'Tutor',plan:'Plan',catch:'Catch-up',custom:'Mine'};
-const FOCUS=[['Genre','Story Elements'],['Tone','Expressing Opinion'],['Summary'],["Author's Purpose"],['Nonfiction Literature'],['Parts of Speech'],['Sentence Structure'],['Punctuation']];
-const SKILLS=['Summary','Word Usage','Stress and Pitch','Biographies','Nonfiction Literature',"Author's Purpose",'Compositions','Parts of Speech','Sentence Structure','Punctuation'];
 const isTutor=ds=>{const w=dowOf(ds);return w===2||w===4};
 const overdueEligible=t=>t.base&&['cie','read','spell','cursive','summary'].includes(t.type)&&!t.id.startsWith('t-');
 
@@ -293,14 +313,14 @@ const LETTERS=['a, c, d','g, o, q','e, l','h, k, b','f, i, t','u, w, j','n, m, v
 const schoolWeek=ws=>Math.round((parse(ws)-parse(weekStart(S.cycleStart)))/(7*864e5))+1;
 const lettersFor=n=>(S.cursiveLetters[n]!=null&&S.cursiveLetters[n]!==''?S.cursiveLetters[n]:LETTERS[n-1])||'';
 function weeklyCheck(kind,ws){const n=schoolWeek(ws);if(n<1||n>32)return'';const on=!!(kind==='spell'?S.spellDone:S.cursiveDone)[n];
- const lbl=kind==='spell'?'Spelling List '+n+' practiced':'Cursive letters: '+lettersFor(n)+' (pencil and paper)';
+ const lbl=kind==='spell'?'Spelling Week '+n+' practiced':'Cursive letters: '+lettersFor(n)+' (pencil and paper)';
  return`<label class="task t-${kind} ${on?'done':''}"><input type="checkbox" data-act="listCheck" data-kind="${kind}" data-n="${n}" ${on?'checked':''}><span class="box"></span><span class="lbl">${esc(lbl)}</span></label>`}
 function weekStats(ws){let total=0,done=0;const by={cie:[0,0],summary:[0,0]};
  for(let i=0;i<5;i++){const d=addDays(ws,i);for(const t of tasksFor(d)){total++;const dn=isDone(d,t.id);if(dn)done++;if(t.base&&by[t.type]){by[t.type][1]++;if(dn)by[t.type][0]++}}}
  const n=schoolWeek(ws);if(n>=1&&n<=32){total+=2;done+=(S.spellDone[n]?1:0)+(S.cursiveDone[n]?1:0)}
- const chapters=S.readingLog.filter(e=>e.date>=ws&&e.date<=addDays(ws,6)).length;
+ const chapters=planChaptersRead(ws);
  return{total,done,pct:total?Math.round(done/total*100):0,by,chapters}}
-function weekInfo(ws){const diff=Math.round((parse(ws)-parse(weekStart(S.cycleStart)))/(7*864e5));const n=((diff%8)+8)%8;return{num:diff+1,cyc:n+1,focus:FOCUS[n]}}
+function weekInfo(ws){return{num:Math.round((parse(ws)-parse(weekStart(S.cycleStart)))/(7*864e5))+1}}
 const curBook=()=>S.books.find(b=>b.status==='current')||null;
 const bookById=id=>S.books.find(b=>b.id===id);
 const readSet=b=>new Set(S.readingLog.filter(e=>e.bookId===b.id).map(e=>e.chapter));
@@ -333,10 +353,10 @@ function achievements(){
 const bar=(p,c)=>`<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${p}" style="${c?'--c:'+c:''}"><i style="width:${Math.min(100,p)}%"></i></div>`;
 function goalRow(label,done,goal,color){const p=goal?Math.round(Math.min(done,goal)/goal*100):0;return`<div class="goal ${done>=goal?'ok':''}" style="--c:${color}"><b>${label}</b><span class="n">${done}/${goal}</span>${bar(p,color)}</div>`}
 function chapterFor(key){const e=S.readingLog.find(x=>x.src===key);return e?bookById(e.bookId)?.title.replace(/^The /,'')+' ch. '+e.chapter:''}
-function taskRow(ds,t){const key=ds+'|'+t.id,d=!!S.done[key];const tag=t.type==='read'&&d?chapterFor(key):'';
+function taskRow(ds,t){const key=ds+'|'+t.id,d=!!S.done[key];const tag='';
  return`<div class="tw"><label class="task t-${t.type} ${d?'done':''}"><input type="checkbox" data-act="toggle" data-date="${ds}" data-id="${t.id}" ${d?'checked':''}><span class="box"></span><span class="lbl">${esc(t.label)}</span>${tag?`<span class="tag">${esc(tag)}</span>`:''}</label>${t.custom?`<button class="x noprint" data-act="delTask" data-id="${t.id}" aria-label="Remove task">✕</button>`:''}</div>`}
 function weekNav(){const ws=weekStart(ui.date),we=addDays(ws,6),wi=weekInfo(ws);
- return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevWeek">‹ Last week</button><div class="ttl">${short(ws)} – ${short(we)}<div class="hint">Week ${wi.num}${lessonWeek(ws)?' · Lessons '+lessonWeek(ws).first+'–'+lessonWeek(ws).last:''} · ${wi.focus.map(esc).join(' + ')}</div></div><button class="btn ghost sm" data-act="nextWeek">Next week ›</button></div>
+ return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevWeek">‹ Last week</button><div class="ttl">${short(ws)} – ${short(we)}<div class="hint">Week ${wi.num}${lessonWeek(ws)?' · Lessons '+lessonWeek(ws).first+'–'+lessonWeek(ws).last:''} </div></div><button class="btn ghost sm" data-act="nextWeek">Next week ›</button></div>
  ${ws!==weekStart(TODAY())?'<div class="row noprint" style="justify-content:center"><button class="btn sm" data-act="thisWeek">Back to this week</button></div>':''}`}
 function weekGoalsHTML(ws){const st=weekStats(ws);
  return`<div class="card"><div class="row between"><h2>Weekly goals</h2><span class="badge gold">${st.pct}% done</span></div>
@@ -371,7 +391,6 @@ function viewToday(){const ds=ui.date,tut=isTutor(ds),st=dayStats(ds),wi=weekInf
     <p class="small" style="font-weight:800">${msg}</p>
     <div class="row noprint"><input type="text" id="newTask" data-enter="addTask" placeholder="Add my own task (like tutor homework)" style="flex:1;min-width:180px"><button class="btn sm" data-act="addTask">Add</button></div>
    </div>
-   <div class="card"><h3>Language Arts focus</h3><div class="chips">${wi.focus.map(f=>`<span class="chip" style="color:var(--brand)">${esc(f)}</span>`).join('')}</div></div>
   </div>
   <div style="display:flex;flex-direction:column;gap:16px;min-width:0">${overdueHTML()}${weekGoalsHTML(weekStart(ds))}</div>
  </div>
@@ -382,14 +401,12 @@ function viewWeek(){const ws=weekStart(ui.date),wi=weekInfo(ws);
  return`${weekNav()}
  <div class="row noprint between"><span class="hint">To print this page, press Ctrl+P (Cmd+P on a Mac), or save a clean copy.</span><button class="btn sm" data-act="savePrintWeek">Save printable week</button></div>
  ${weekGoalsHTML(ws)}
- <div class="days">${[0,1,2,3,4,5,6].map(i=>dayCard(addDays(ws,i))).join('')}</div>
- <div class="card"><h3>Skills we are building</h3><div class="chips">${SKILLS.map(s=>`<span class="chip skill ${wi.focus.includes(s)?'on':''}">${esc(s)}</span>`).join('')}</div><p class="hint">Filled in = this week's focus. The others keep growing through reading, writing and tutoring.</p></div>
- <div class="card"><h3>8-week Language Arts plan</h3><div class="roadmap">${FOCUS.map((f,i)=>`<div class="rw ${i+1===wi.cyc?'cur':''}"><b>Week ${i+1}</b>${f.map(esc).join(', ')}</div>`).join('')}</div></div>`}
+ <div class="days">${[0,1,2,3,4,5,6].map(i=>dayCard(addDays(ws,i))).join('')}</div>`}
 
 function viewMonth(){const[y,m]=ui.month.split('-').map(Number),first=iso(new Date(y,m-1,1)),last=iso(new Date(y,m,0)),t=TODAY();
  let ws=weekStart(first),html='';
  while(ws<=last){const wi=weekInfo(ws),st=weekStats(ws);
-  html+=`<div class="wkcap"><span>Week ${wi.num}: ${wi.focus.map(esc).join(' + ')}</span><span>${st.pct}% done</span></div><div class="mrow">`;
+  html+=`<div class="wkcap"><span>Week ${wi.num}${lessonWeek(ws)?' · Lessons '+lessonWeek(ws).first+'–'+lessonWeek(ws).last:''}</span><span>${st.pct}% done</span></div><div class="mrow">`;
   for(let i=0;i<7;i++){const d=addDays(ws,i),ds=dayStats(d),inM=d.slice(0,7)===ui.month,tut=isTutor(d);
    const late=d<t&&d>=S.trackFrom&&tasksFor(d).some(x=>(overdueEligible(x)||x.custom)&&!isDone(d,x.id));
    html+=`<button class="cell ${inM?'':'out'} ${tut?'tutor':''} ${d===t?'today':''} ${late?'late':''} ${ds.total&&ds.done===ds.total?'full':''}" data-act="gotoDay" data-date="${d}" aria-label="${longDate(d)}, ${ds.done} of ${ds.total} done"><span class="d"><span>${parse(d).getDate()}</span>${tut?'<span>⭐</span>':''}</span>${ds.total?`<span class="ct">${ds.done}/${ds.total}</span>${bar(ds.pct,tut?'var(--tutor)':'var(--brand)')}`:''}<span class="st small muted">${late?'Missing work':tut?'Tutoring':''}</span></button>`}
@@ -398,37 +415,37 @@ function viewMonth(){const[y,m]=ui.month.split('-').map(Number),first=iso(new Da
  <div class="row noprint between"><span class="hint">Tap a day to open its task list. ⭐ = tutoring day. Print with Ctrl+P (Cmd+P).</span><span class="row"><button class="btn ghost sm" data-act="thisMonth">This month</button><button class="btn sm" data-act="savePrintMonth">Save printable month</button></span></div>
  <div class="card"><div class="mhead">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div>${d}</div>`).join('')}</div>${html}</div>`}
 
-function viewReading(){const ws=weekStart(ui.date),b=curBook(),rw=S.readingWeek[ws]||{},st=weekStats(ws);
- let cur='<div class="card"><h2>No current book</h2><p>Choose "Make current" on a book below.</p></div>';
+function viewReading(){const ws=weekStart(ui.date),b=curBook(),st=weekStats(ws),rp=readPlan(ws);
+ let cur='<div class="card"><h2>No book selected</h2></div>';
  if(b){const r=readSet(b),n=nextChapter(b),p=b.total?Math.round(r.size/b.total*100):0;
   cur=`<div class="card" style="border-color:var(--read)"><div class="row between"><div><span class="small muted" style="font-weight:800">I'M READING</span><h2>${esc(b.title)}</h2><div class="small muted">by ${esc(b.author)}</div></div>
    <label class="f" style="width:150px">Total chapters<input type="number" min="0" max="200" value="${b.total||''}" data-bind="books.${S.books.indexOf(b)}.total" data-num="1" data-re="1" placeholder="Enter number"></label></div>
    ${b.total?`<div class="goal" style="--c:var(--read)"><b>${r.size} of ${b.total} chapters read</b><span class="n">${p}%</span>${bar(p,'var(--read)')}</div>
    <div class="chapters">${Array.from({length:b.total},(_,i)=>i+1).map(c=>`<button class="ch ${r.has(c)?'on':''} ${c===n?'next':''}" data-act="chap" data-n="${c}" aria-pressed="${r.has(c)}" aria-label="Chapter ${c}">${c}</button>`).join('')}</div>
-   <p class="hint">${n?`Next up: chapter ${n}. Checking "Read 1 chapter" in your daily list marks it here. You can also tap a number.`:'You read every chapter. Mark the book finished below!'}</p>`
-   :`<p>Enter how many chapters this book has (check your copy) to see the chapter map. You have read ${r.size} so far.</p>`}</div>`}
- const sched=[0,1,2,3,4].map(i=>addDays(ws,i)).filter(d=>tasksFor(d).some(t=>t.type==='read')).map(d=>{const dn=isDone(d,'read');return`<span class="badge" style="background:${dn?'var(--read)':'var(--surface2)'};color:${dn?'var(--chk)':'var(--ink)'};border:2px solid var(--read)">${DOW[dowOf(d)].slice(0,3)} ${dn?'✓':'1 chapter'}</span>`}).join(' '),rp=readPlan(ws);
+   <p class="hint">${n?`Next up: chapter ${n}. Checking the reading box in your daily list fills it in here. You can also tap a number.`:'You read every chapter. Great job!'}</p>`
+   :`<p>Enter how many chapters this book has to see the chapter map. You have read ${r.size} so far.</p>`}</div>`}
+ const bh=behindChapters(),book=bookById('ember')?bookById('ember').title:'City of Ember';
+ const banner=bh.length?`⚠️ You are behind: ${bh.map(c=>'Ch. '+c).join(', ')}. Read them when you can, then keep going!`:'🎉 You are on track. Keep it up!';
+ const goalHero=`<div class="goalhero"><div class="gk">🎯 This week's goal</div>${rp?`<div class="gt">Read ${chRange(rp).replace('chapters','Ch.').replace('chapter','Ch.')}</div><div class="gs">${esc(book)}</div>
+  <div class="gb"><span>${st.chapters} of ${rp.goal} read</span>${bar(Math.round(Math.min(st.chapters,rp.goal)/rp.goal*100))}</div>`:'<div class="gt">No reading this week</div><div class="gs">Enjoy a break!</div>'}
+  <div class="gm">${banner}</div></div>`;
+ const r2=bookById('ember')?readSet(bookById('ember')):new Set(),thisWs=weekStart(TODAY());
+ const plan=READ_GOALS.map((g,k)=>{if(!g)return'';const w=addDays(weekStart(S.cycleStart),7*k),rp2=readPlan(w),items=readItems(w),n=items.filter(x=>r2.has(x.ch)).length,late=items.filter(x=>x.date<TODAY()&&!r2.has(x.ch));
+  const stt=n>=g?['✅','Done','done']:late.length?['⚠️','Behind: '+late.map(x=>'Ch. '+x.ch).join(', '),'late']:w===thisWs?['📖','This week','now']:['🗓️','Coming up','soon'];
+  return`<div class="rpc ${stt[2]} ${w===ws?'sel':''}"><div class="em">${stt[0]}</div><b>Week ${k+1}</b><div class="rch">${chRange(rp2).replace('chapters','Ch.').replace('chapter','Ch.')}</div><div class="small muted">${short(w)} – ${short(addDays(w,4))}</div><div class="small st">${stt[1]}</div>${bar(Math.round(n/g*100),'var(--read)')}</div>`}).join('');
  return`${weekNav()}
- <div class="grid2"><div style="display:flex;flex-direction:column;gap:16px;min-width:0">${cur}</div>
- <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
-  <div class="card"><h2>This week's reading goal</h2>${rp?`<p style="font-family:var(--display);font-size:1.4rem">${esc(bookById('ember')?bookById('ember').title:'Novel')}: ${chRange(rp)}</p>${goalRow('Chapters read this week',st.chapters,rp.goal,'var(--read)')}<div class="row">${sched}</div><p class="hint">Read a little each day. Checking "Read 1 chapter" in your daily list marks it in your tracker.</p>`:'<p>No reading is assigned this week. Enjoy it!</p>'}</div>
- </div></div>
- <div class="card"><h2>Reading plan: ${esc(bookById('ember')?bookById('ember').title:'novel')}</h2><div class="tasks">${READ_GOALS.map((g,k)=>{if(!g)return'';const w=addDays(weekStart(S.cycleStart),7*k),rp2=readPlan(w),n=S.readingLog.filter(e=>e.date>=w&&e.date<=addDays(w,6)).length,p=Math.round(Math.min(n,g)/g*100);
-  return`<div class="goal ${n>=g?'ok':''}" style="--c:var(--read);${w===ws?'font-weight:800':''}"><b>Week ${k+1} · ${short(w)} – ${short(addDays(w,4))} · ${chRange(rp2)}${w===ws?' (this week)':''}</b><span class="n">${n}/${g}</span>${bar(p,'var(--read)')}</div>`}).join('')}</div></div>
- <div class="card"><h2>My bookshelf</h2>${S.books.map((x,i)=>`<div class="book ${x.status==='current'?'cur':''}"><div class="meta"><b>${esc(x.title)}</b><div class="small muted">${esc(x.author)} · ${readSet(x).size}${x.total?'/'+x.total:''} chapters · ${x.status==='current'?'Reading now':x.status==='done'?'Finished':'Up next'}</div></div>
-   ${x.status!=='current'?`<button class="btn sm ${x.status==='done'?'ghost':''}" data-act="bookCur" data-i="${i}">Make current</button>`:''}${x.status!=='done'?`<button class="btn ghost sm" data-act="bookDone" data-i="${i}">Mark finished</button>`:''}</div>`).join('')}
-  <div class="row noprint"><input type="text" id="bkTitle" placeholder="Add a book title" style="flex:1;min-width:160px"><input type="text" id="bkAuth" placeholder="Author" style="flex:1;min-width:120px"><button class="btn sm" data-act="addBook">Add book</button></div></div>
- <div class="card"><h2>Reading log</h2>${S.readingLog.length?`<div class="scroll"><table class="tbl"><thead><tr><th>Date</th><th>Book</th><th>Ch.</th><th></th></tr></thead><tbody>
-  ${S.readingLog.map((e,i)=>({e,i})).sort((a,c)=>c.e.date.localeCompare(a.e.date)||c.e.chapter-a.e.chapter).map(({e,i})=>`<tr><td style="white-space:nowrap">${short(e.date)}</td><td>${esc(bookById(e.bookId)?.title||'')}</td><td>${e.chapter}</td><td><button class="x" data-act="delLog" data-i="${i}" aria-label="Delete entry">✕</button></td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">No chapters logged yet. Check off "Read 1 chapter" to start your log.</p>'}</div>`}
+ ${goalHero}
+ ${cur}
+ <div class="card"><h2>Reading plan: ${esc(book)}</h2><div class="rpg">${plan}</div></div>`}
 
 function listGrid(kind){const cur=schoolWeek(weekStart(TODAY())),store=kind==='spell'?S.spellDone:S.cursiveDone;
  return`<div class="lists">${Array.from({length:32},(_,i)=>i+1).map(n=>{const on=!!store[n];
-  return`<label class="task t-${kind} ${on?'done':''} ${n===cur?'cur':''}"><input type="checkbox" data-act="listCheck" data-kind="${kind}" data-n="${n}" ${on?'checked':''}><span class="box"></span><span class="lbl">${kind==='spell'?'List '+n:'<b>Week '+n+'</b><br><span class="small">'+esc(lettersFor(n))+'</span>'}</span>${n===cur?'<span class="tag">this week</span>':''}</label>`}).join('')}</div>`}
+  return`<label class="task t-${kind} ${on?'done':''} ${n===cur?'cur':''}"><input type="checkbox" data-act="listCheck" data-kind="${kind}" data-n="${n}" ${on?'checked':''}><span class="box"></span><span class="lbl">${kind==='spell'?'Week '+n:'<b>Week '+n+'</b><br><span class="small">'+esc(lettersFor(n))+'</span>'}</span>${n===cur?'<span class="tag">this week</span>':''}</label>`}).join('')}</div>`}
 
 function viewSpelling(){const n=schoolWeek(weekStart(TODAY())),done=Object.keys(S.spellDone).filter(k=>S.spellDone[k]).length;
- return`<div class="card" style="border-color:var(--spell)"><div class="row between"><h2>Spelling lists</h2><span class="badge" style="background:var(--spell);color:var(--chk)">${done} of 32 done</span></div>
+ return`<div class="card" style="border-color:var(--spell)"><div class="row between"><h2>Spelling</h2><span class="badge" style="background:var(--spell);color:var(--chk)">${done} of 32 done</span></div>
   ${bar(Math.round(done/32*100),'var(--spell)')}
-  <p>${n>=1&&n<=32?`This week's list is <b>List ${n}</b>. Check the box when you have practiced it.`:'Check each list after you practice it. One list every week.'}</p>
+  <p>${n>=1&&n<=32?`This week is <b>Week ${n}</b>. Check the box when you have practiced the spelling list.`:'Check each week after you practice its spelling list.'}</p>
   ${listGrid('spell')}</div>`}
 
 function viewCursive(){const ws=weekStart(TODAY()),n=schoolWeek(ws),ok=n>=1&&n<=32,done=Object.keys(S.cursiveDone).filter(k=>S.cursiveDone[k]).length;
@@ -438,30 +455,15 @@ function viewCursive(){const ws=weekStart(TODAY()),n=schoolWeek(ws),ok=n>=1&&n<=
   ${bar(Math.round(done/32*100),'var(--cursive)')}</div>
  <div class="card"><h2>Letters for every week</h2>${listGrid('cursive')}</div>`}
 
-function viewTutor(){const ws=weekStart(ui.date),sessions=[addDays(ws,1),addDays(ws,3)],od=overdue();
- const f=(ds,k,l,ph)=>`<label class="f">${l}<textarea data-bind="tutorNotes.${ds}.${k}" style="min-height:76px" placeholder="${ph}">${esc((S.tutorNotes[ds]||{})[k]||'')}</textarea></label>`;
- return`${weekNav()}
- <div class="two">${sessions.map(ds=>`<div class="card" style="border-color:var(--tutor)"><div class="row between"><h2>${DOW[dowOf(ds)]}, ${short(ds)}</h2><span class="badge gold">⭐ 30 min</span></div>
-  ${f(ds,'covered','What we worked on','Reading aloud, new idea…')}${f(ds,'practice','Needs more practice','Skills to keep working on')}${f(ds,'next','Plan for next time','Goals from my tutor')}</div>`).join('')}</div>
- <div class="card"><h2>To review with my tutor</h2>${od.length?`<div class="tasks">${od.flatMap(x=>x.tasks.map(t=>`<div class="note-item" style="--c:var(--late)"><b>${esc(t.label)}</b> <span class="small muted">· ${longDate(x.date)}</span></div>`)).join('')}</div>`:'<p class="muted">No missing work right now.</p>'}</div>`}
-
-function viewSettings(){
- return`<div class="card"><h2>Planner settings</h2>
-  <div class="row"><label class="f">Student name<input type="text" data-bind="name" data-re="1" value="${esc(S.name)}"></label>
-  <label class="f">Week 1 starts on (Monday)<input type="date" data-bind="cycleStart" data-re="1" value="${S.cycleStart}"></label>
-  <label class="f">Count missing work from<input type="date" data-bind="trackFrom" data-re="1" value="${S.trackFrom}"></label></div>
-  <p class="hint">Week 1 sets spelling List 1, the first cursive letters and the first Language Arts focus.</p>
-  <h3>Backup</h3><p class="hint">Everything is saved in this browser automatically${cloud.ref?' and in your Claude account':''}. A backup file is extra protection.</p>
-  <div class="row"><button class="btn sm" data-act="export">Save backup file</button><label class="btn ghost sm" style="cursor:pointer">Restore from backup<input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div>`}
-
-const TABS=[['today','Today'],['week','Week'],['month','Month'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive'],['tutor','Tutor'],['settings','Settings']];
-const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,reading:viewReading,spelling:viewSpelling,cursive:viewCursive,tutor:viewTutor,settings:viewSettings};
+const TABS=[['today','Today'],['week','Week'],['month','Month'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive']];
+const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,reading:viewReading,spelling:viewSpelling,cursive:viewCursive};
 
 function render(){
  document.getElementById('nameLine').textContent=(S.name||'My')+(S.name?"'s":'');
  const ws=weekStart(TODAY()),st=weekStats(ws),wi=weekInfo(ws);
  const m=st.pct===100?'Perfect week! You finished everything!':st.pct>=80?'Almost there! Finish strong!':st.pct>=40?'More than halfway. Keep it up!':st.pct>0?'Great start. One task at a time!':'Fresh week! Begin with one lesson.';
- document.getElementById('hero').innerHTML=`<div><div class="kick">This week · ${short(ws)} – ${short(addDays(ws,6))}${lessonWeek(ws)?' · Lessons '+lessonWeek(ws).first+'–'+lessonWeek(ws).last:''}</div><h2>Week ${wi.num}: ${wi.focus.map(esc).join(' + ')}</h2></div><div class="pct">${st.pct}%</div>${bar(st.pct)}<div class="msg">${m}</div>`;
+ document.getElementById('weekbadge').innerHTML=`<span class="k">This week</span><span class="d">${short(ws)} – ${short(addDays(ws,6))}</span><span class="l"><span class="p">Week ${wi.num}</span>${lessonWeek(ws)?`<span class="p">Lessons ${lessonWeek(ws).first}–${lessonWeek(ws).last}</span>`:''}</span>`;
+ document.getElementById('hero').innerHTML=`<span class="lab">Weekly progress</span>${bar(st.pct)}<span class="pct">${st.pct}%</span><div class="msg">${m}</div>`;
  document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button class="tab" data-act="tab" data-tab="${k}" ${ui.tab===k?'aria-current="page"':''}>${l}</button>`).join('');
  document.getElementById('view').innerHTML=VIEWS[ui.tab]();
  setStatus()}
@@ -471,7 +473,7 @@ function toast(t){const el=document.getElementById('toast');el.textContent=t;el.
 function toggleTask(ds,id,on){const key=ds+'|'+id,t=tasksFor(ds).find(x=>x.id===id);
  if(on)S.done[key]=true;else delete S.done[key];
  if(t&&t.type==='read'){
-  if(on){const b=curBook();if(b){const n=nextChapter(b);if(n)S.readingLog.push({id:uid(),date:ds,bookId:b.id,chapter:n,note:'',src:key})}}
+  if(on){const b=(t.bookId&&bookById(t.bookId))||curBook();if(b){const n=t.chapter?(readSet(b).has(t.chapter)?null:t.chapter):nextChapter(b);if(n)S.readingLog.push({id:uid(),date:ds,bookId:b.id,chapter:n,note:'',src:key})}}
   else S.readingLog=S.readingLog.filter(e=>e.src!==key)}
  save();render();
  if(on){const ds2=dayStats(ds);if(ds2.total&&ds2.done===ds2.total)toast('Everything done for the day. Awesome work!');
@@ -514,10 +516,10 @@ const PCSS='body{font-family:Arial,sans-serif;color:#000;margin:18px}h1{margin:0
 function pdoc(title,body){return`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${PCSS}</style></head><body>${body}</body></html>`}
 async function savePrint(kind){let html,name;
  if(kind==='week'){const ws=weekStart(ui.date),wi=weekInfo(ws),st=weekStats(ws);name='planner-week-'+ws+'.html';
-  html=pdoc('Week of '+ws,`<h1>${esc(S.name)}'s Planner · ${short(ws)} – ${short(addDays(ws,6))}</h1><div class="sub">Week ${wi.num}: ${wi.focus.map(esc).join(' + ')} · Goals: CIE lessons ${lessonWeek(ws)?lessonWeek(ws).first+'–'+lessonWeek(ws).last:'none planned'} (${st.by.cie[0]}/${st.by.cie[1]}), ${readPlan(ws)?'reading '+chRange(readPlan(ws))+' ('+st.chapters+'/'+readPlan(ws).goal+'), one reading summary':'no reading assigned'}</div><div class="g">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i);return`<div class="d ${isTutor(d)?'t':''}"><b>${DOW[dowOf(d)]} ${short(d)}${isTutor(d)?' ★ Tutoring (30 min)':''}</b>${tasksFor(d).map(t=>`<div class="i">${isDone(d,t.id)?'☑':'☐'} ${esc(t.label)}</div>`).join('')||'<div class="i">Free day</div>'}</div>`}).join('')}<div class="d"><b>This week</b>${(()=>{const n=schoolWeek(ws);return n>=1&&n<=32?`<div class="i">${S.spellDone[n]?'☑':'☐'} Spelling List ${n}</div><div class="i">${S.cursiveDone[n]?'☑':'☐'} Cursive: ${esc(lettersFor(n))}</div>`:''})()}</div></div>`)}
+  html=pdoc('Week of '+ws,`<h1>${esc(S.name)}'s Planner · ${short(ws)} – ${short(addDays(ws,6))}</h1><div class="sub">Week ${wi.num} · Goals: CIE lessons ${lessonWeek(ws)?lessonWeek(ws).first+'–'+lessonWeek(ws).last:'none planned'} (${st.by.cie[0]}/${st.by.cie[1]}), ${readPlan(ws)?'reading '+chRange(readPlan(ws))+' ('+st.chapters+'/'+readPlan(ws).goal+'), one reading summary':'no reading assigned'}</div><div class="g">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i);return`<div class="d ${isTutor(d)?'t':''}"><b>${DOW[dowOf(d)]} ${short(d)}${isTutor(d)?' ★ Tutoring (30 min)':''}</b>${tasksFor(d).map(t=>`<div class="i">${isDone(d,t.id)?'☑':'☐'} ${esc(t.label)}</div>`).join('')||'<div class="i">Free day</div>'}</div>`}).join('')}<div class="d"><b>This week</b>${(()=>{const n=schoolWeek(ws);return n>=1&&n<=32?`<div class="i">${S.spellDone[n]?'☑':'☐'} Spelling Week ${n}</div><div class="i">${S.cursiveDone[n]?'☑':'☐'} Cursive: ${esc(lettersFor(n))}</div>`:''})()}</div></div>`)}
  else{const[y,m]=ui.month.split('-').map(Number),first=iso(new Date(y,m-1,1)),last=iso(new Date(y,m,0));name='planner-month-'+ui.month+'.html';
   let cells='';for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7))for(let i=0;i<7;i++){const d=addDays(ws,i),inM=d.slice(0,7)===ui.month;cells+=`<div class="${isTutor(d)&&inM?'t':''}">${inM?`<b>${parse(d).getDate()}</b>${isTutor(d)?' ★ Tutoring':''}<br>${(dowOf(d)===1&&0)?'':''}`:''}</div>`}
-  const wk=[];for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7)){const wi=weekInfo(ws);wk.push(`Week ${wi.num} (${short(ws)}): ${wi.focus.join(' + ')}`)}
+  const wk=[];for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7)){const wi=weekInfo(ws);wk.push(`Week ${wi.num} (${short(ws)})`)}
   html=pdoc(MON[m-1]+' '+y,`<h1>${MON[m-1]} ${y} · ${esc(S.name)}'s Planner</h1><div class="sub">★ = tutoring day (Tuesday and Thursday, 30 minutes)<br>${wk.map(esc).join(' · ')}</div><div class="m">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="h">${x}</div>`).join('')}${cells}</div>`)}
  try{const d=await claude.use('downloads');if(!d){toast('Use Ctrl+P (Cmd+P) to print this page');return}await d.save({filename:name,data:html});toast('Saved. Open the file and print it.')}catch(err){if(!err||err.code!=='declined')toast('Could not save. Try Ctrl+P (Cmd+P) instead.')}}
 
