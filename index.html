@@ -186,6 +186,14 @@ details>summary{cursor:pointer;font-weight:800}
 .task.cur{box-shadow:0 0 0 3px var(--brand)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.two>*{min-width:0}
 @media (max-width:560px){.two{grid-template-columns:1fr}}
+.picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.wkpick{border:2px solid var(--line);background:var(--surface2);border-radius:14px;padding:8px 10px;text-align:left;display:flex;flex-direction:column;gap:1px;min-width:0}
+.wkpick.sel{border-color:var(--cursive);box-shadow:0 0 0 3px color-mix(in srgb,var(--cursive) 35%,transparent)}
+.wkpick.full{background:color-mix(in srgb,var(--good) 12%,var(--surface))}.wkpick .st{font-weight:800;color:var(--muted)}
+button.task{width:100%;text-align:left;font:inherit;color:inherit}
+.task.on .box{background:var(--c)}.task.on .box::after{content:"";width:7px;height:13px;border:solid var(--chk);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.task.photo{--c:var(--tutor);--chk:#2a2150}
+.lists .task .lbl{overflow-wrap:anywhere}
 .bigscript{font-family:var(--script);font-size:3.2rem;line-height:1.2;color:var(--cursive)}
 
 @media print{
@@ -276,9 +284,9 @@ const overdueEligible=t=>t.base&&['cie','read','spell','cursive','summary'].incl
 function defaultState(){const t=TODAY();return{v:1,updated:0,name:'Isabella',cycleStart:START_WEEK,trackFrom:START_WEEK,
  done:{},custom:[],
  books:[{id:'ember',title:'City of Ember',author:'Jeanne DuPrau',total:19,status:'current'},{id:'downriver',title:'Downriver',author:'Will Hobbs',total:0,status:'next'},{id:'unteachables',title:'The Unteachables',author:'Gordon Korman',total:0,status:'next'}],
- readingLog:[],readingWeek:{},spelling:{},cursiveLog:[],cursiveWeek:{},summaries:{},reflections:{},tutorNotes:{},notes:'',weekGoals:{},spellDone:{},cursiveDone:{},cursiveLetters:{}}}
+ readingLog:[],readingWeek:{},spelling:{},cursiveLog:[],cursiveWeek:{},summaries:{},reflections:{},tutorNotes:{},notes:'',weekGoals:{},spellDone:{},cursiveDone:{},cursiveLetters:{},cursiveItems:{}}}
 let S=defaultState();
-const ui={tab:'today',date:TODAY(),month:TODAY().slice(0,7)};
+const ui={curWeek:0,tab:'today',date:TODAY(),month:TODAY().slice(0,7)};
 try{const raw=localStorage.getItem(LS_KEY);if(raw)S=fixBooks(Object.assign(defaultState(),JSON.parse(raw)))}catch(e){}
 let local_ok=true,cloud={ref:null,state:'off',busy:false,again:false,timer:null};
 
@@ -311,13 +319,232 @@ const isDone=(ds,id)=>!!S.done[ds+'|'+id];
 function dayStats(ds){const ts=tasksFor(ds);const done=ts.filter(t=>isDone(ds,t.id)).length;return{total:ts.length,done,pct:ts.length?Math.round(done/ts.length*100):0}}
 const LETTERS=['a, c, d','g, o, q','e, l','h, k, b','f, i, t','u, w, j','n, m, v','x, y, z','p, r, s','A, O, D','C, E, G','Q, S, L','B, P, R','F, T, H','K, M, N','U, V, W','X, Y, Z','I, J','Review: a, c, d, g, o, q','Review: e, l, h, k, b, f','Review: i, t, u, w, j','Review: n, m, v, x, y, z','Review: p, r, s','Review: A, O, D, C, E, G','Review: Q, S, L, B, P, R','Review: F, T, H, K, M, N','Review: U, V, W, X, Y, Z, I, J','Connecting words: the, and, was','Connecting words: said, with, from','Her name: Isabella','Days of the week','Months of the year'];
 const schoolWeek=ws=>Math.round((parse(ws)-parse(weekStart(S.cycleStart)))/(7*864e5))+1;
-const lettersFor=n=>(S.cursiveLetters[n]!=null&&S.cursiveLetters[n]!==''?S.cursiveLetters[n]:LETTERS[n-1])||'';
-function weeklyCheck(kind,ws){const n=schoolWeek(ws);if(n<1||n>32)return'';const on=!!(kind==='spell'?S.spellDone:S.cursiveDone)[n];
+/* Cursive practice: words and sentences for each school week (weeks 30-32 will be added later). */
+const CUR_RAW=`WEEK 1 — a, c, d
+Word Practice
+cat, dad, cab, cad, add, dad's, act, can
+Sentence Practice
+1. Dad can add.
+2. A cat can nap.
+3. Dad and the cat.
+WEEK 2 — g, o, q
+Word Practice
+go, dog, log, jog, got, god, ago, good, gold
+Sentence Practice
+1. Go get the dog.
+2. A dog can jog.
+3. The dog got a log.
+WEEK 3 — e, l
+Word Practice
+leg, let, led, eel, Lee, else, level, little
+Sentence Practice
+1. Let me see.
+2. Lee has a little leg.
+3. The little elf can leap.
+WEEK 4 — h, k, b
+Word Practice
+hat, bat, bed, hen, hot, kid, bike, book
+Sentence Practice
+1. The hen has a hat.
+2. The kid has a book.
+3. Ben has a big bike.
+WEEK 5 — f, i, t
+Word Practice
+fit, fat, hit, sit, it, if, lift, gift
+Sentence Practice
+1. I sit and fit.
+2. It is a gift.
+3. Tim hit the ball.
+WEEK 6 — u, w, j
+Word Practice
+jug, jump, just, wet, wig, win, fun, sun
+Sentence Practice
+1. We jump in the sun.
+2. The jug is wet.
+3. Jack can jump well.
+WEEK 7 — n, m, v
+Word Practice
+man, van, name, nine, men, move, moon, seven
+Sentence Practice
+1. The man has a van.
+2. My name is Sam.
+3. We move the van.
+WEEK 8 — x, y, z
+Word Practice
+yes, yet, yak, zip, zap, box, fox, six, mix
+Sentence Practice
+1. Yes, I can mix it.
+2. The fox is in a box.
+3. Zack has six pens.
+WEEK 9 — p, r, s
+Word Practice
+pen, pet, red, rip, sip, sad, sun, rose
+Sentence Practice
+1. Sam has a red pen.
+2. The pup can run.
+3. Rose is a sweet pet.
+WEEK 10 — A, O, D
+Word Practice
+Anna, Adam, Ava, Amy, Oscar, Olive, David, Daisy
+Sentence Practice
+1. Adam has a dog.
+2. Ava and Oscar play.
+3. Daisy is a good dog.
+WEEK 11 — C, E, G
+Word Practice
+Cat, Cake, Emma, Ella, Eve, Gabe, Grace, Green
+Sentence Practice
+1. Emma has a cat.
+2. Grace can bake a cake.
+3. Ella and Gabe are glad.
+WEEK 12 — Q, S, L
+Word Practice
+Queen, quiet, quilt, Sam, Sara, Sue, Lily, Luke, Lake
+Sentence Practice
+1. Sara has a quilt.
+2. Lily is quiet.
+3. The queen likes the lake.
+WEEK 13 — B, P, R
+Word Practice
+Ben, Bella, ball, Pat, Paul, pink, Rose, Ruby, rain
+Sentence Practice
+1. Bella has a pink ball.
+2. Ruby likes the rain.
+3. Paul and Ben play.
+WEEK 14 — F, T, H
+Word Practice
+Finn, Fred, fish, Tom, Tina, tree, Hannah, happy, home
+Sentence Practice
+1. Tina has a fish.
+2. Fred is happy at home.
+3. Hannah hugs her teddy.
+WEEK 15 — K, M, N
+Word Practice
+Kate, kind, kite, Mom, milk, moon, Nick, Nina, nest
+Sentence Practice
+1. Kate has a kite.
+2. Nina likes milk.
+3. Mom sees a nest.
+WEEK 16 — U, V, W
+Word Practice
+Uncle, under, up, Victor, violet, vase, Wendy, water, window
+Sentence Practice
+1. Wendy has a vase.
+2. Victor is under the window.
+3. We see violet flowers.
+WEEK 17 — X, Y, Z
+Word Practice
+Xavier, Xena, xylophone, yellow, Yara, yes, Zoe, zebra, zero
+Sentence Practice
+1. Zoe sees a zebra.
+2. Yara has a yellow bag.
+3. Xavier plays the xylophone.
+WEEK 18 — I, J
+Word Practice
+Ian, ice, idea, Ivy, Jack, Jane, juice, jump
+Sentence Practice
+1. Jane likes ice cream.
+2. Jack drinks juice.
+3. Ivy and Ian jump.
+WEEK 19 — REVIEW: a, c, d, g, o, q
+Word Practice
+dog, dad, cat, coat, good, goat, code, duck, queen
+Sentence Practice
+1. Dad got a good dog.
+2. A cat can go out.
+3. The queen has a cute dog.
+WEEK 20 — REVIEW: e, l, h, k, b, f
+Word Practice
+bell, help, held, black, feel, leaf, bike, hill, blue
+Sentence Practice
+1. The bell is loud.
+2. Help the little bird.
+3. The black bike is blue.
+WEEK 21 — REVIEW: i, t, u, w, j
+Word Practice
+just, jump, twin, wait, quit, suit, fruit, juice
+Sentence Practice
+1. We wait in the sun.
+2. Jack has a fruit cup.
+3. It is just right.
+WEEK 22 — REVIEW: n, m, v, x, y, z
+Word Practice
+many, name, move, van, yummy, yellow, zoom, mix, maze
+Sentence Practice
+1. My name is Max.
+2. We mix yellow paint.
+3. The van is very busy.
+WEEK 23 — REVIEW: p, r, s
+Word Practice
+paper, pretty, present, sister, surprise, spring, rabbit, grapes
+Sentence Practice
+1. My sister has a present.
+2. The rabbit is pretty.
+3. Sam likes spring.
+WEEK 24 — REVIEW: A, O, D, C, E, G
+Word Practice
+Adam, Anna, Oscar, Olivia, Daisy, David, Emma, Ella, Grace
+Sentence Practice
+1. Adam and Emma can dance.
+2. Olivia has a dog.
+3. Grace goes to school.
+WEEK 25 — REVIEW: Q, S, L, B, P, R
+Word Practice
+Queen, Sarah, Lily, Bella, Peter, Rose, purple, rabbit, sunny
+Sentence Practice
+1. Bella has a purple bag.
+2. Rose sees the queen.
+3. Peter and Lily play.
+WEEK 26 — REVIEW: F, T, H, K, M, N
+Word Practice
+family, Friday, happy, house, kitten, mother, number, night
+Sentence Practice
+1. My family is happy.
+2. Hannah has a kitten.
+3. Mom makes a nice meal.
+WEEK 27 — REVIEW: U, V, W, X, Y, Z, I, J
+Word Practice
+Uncle, under, visit, water, window, yellow, zebra, jacket, juice
+Sentence Practice
+1. Jane visits Uncle Victor.
+2. The yellow jacket is wet.
+3. We see a zebra at the zoo.
+WEEK 28 — CONNECTING WORDS: the, and, was
+Word Practice
+the, and, was
+Sentence Practice
+1. The cat was big.
+2. Mom and Dad were here.
+3. The dog was happy.
+4. The sun was hot.
+5. Sam and Jane play.
+WEEK 29 — CONNECTING WORDS: said, with, from
+Word Practice
+said, with, from
+Sentence Practice
+1. Mom said hello.
+2. I went with Dad.
+3. This gift is from Jane.
+4. He said it was fun.
+5. She went with her friend.`;
+const CUR={};
+CUR_RAW.split(/\n(?=WEEK \d+)/).forEach(b=>{const L=b.trim().split('\n'),m=L[0].match(/^WEEK (\d+)\s*—\s*(.*)$/);if(!m)return;
+ const wi=L.indexOf('Word Practice'),si=L.indexOf('Sentence Practice');
+ CUR[+m[1]]={label:m[2].replace(/^REVIEW:/,'Review:').replace(/^CONNECTING WORDS:/,'Connecting words:'),
+  words:L[wi+1].split(/,\s*/).filter(Boolean),sentences:L.slice(si+1).map(x=>x.replace(/^\d+\.\s*/,'')).filter(Boolean)}});
+const lettersFor=n=>(CUR[n]?CUR[n].label:LETTERS[n-1])||'';
+function cursiveProg(n){const c=CUR[n];if(!c)return{done:0,total:0};const it=S.cursiveItems[n]||{};
+ const keys=[...c.words.map((_,i)=>'w'+i),...c.sentences.map((_,i)=>'s'+i),'photo'];return{done:keys.filter(k=>it[k]).length,total:keys.length}}
+const cursiveComplete=n=>{const p=cursiveProg(n);return p.total>0&&p.done===p.total};
+function weeklyCheck(kind,ws){const n=schoolWeek(ws);if(n<1||n>32)return'';
+ if(kind==='cursive'){const c=CUR[n];if(!c)return'';const p=cursiveProg(n),on=cursiveComplete(n);
+  return`<button class="task t-cursive ${on?'on done':''}" data-act="openCursive" data-n="${n}"><span class="box"></span><span class="lbl">Cursive Week ${n}: ${esc(c.label)} <span class="muted small">(${p.done}/${p.total})</span></span></button>`}
+const on=!!(kind==='spell'?S.spellDone:S.cursiveDone)[n];
  const lbl=kind==='spell'?'Spelling Week '+n+' practiced':'Cursive letters: '+lettersFor(n)+' (pencil and paper)';
  return`<label class="task t-${kind} ${on?'done':''}"><input type="checkbox" data-act="listCheck" data-kind="${kind}" data-n="${n}" ${on?'checked':''}><span class="box"></span><span class="lbl">${esc(lbl)}</span></label>`}
 function weekStats(ws){let total=0,done=0;const by={cie:[0,0],summary:[0,0]};
  for(let i=0;i<5;i++){const d=addDays(ws,i);for(const t of tasksFor(d)){total++;const dn=isDone(d,t.id);if(dn)done++;if(t.base&&by[t.type]){by[t.type][1]++;if(dn)by[t.type][0]++}}}
- const n=schoolWeek(ws);if(n>=1&&n<=32){total+=2;done+=(S.spellDone[n]?1:0)+(S.cursiveDone[n]?1:0)}
+ const n=schoolWeek(ws);if(n>=1&&n<=32){total+=1+(CUR[n]?1:0);done+=(S.spellDone[n]?1:0)+(cursiveComplete(n)?1:0)}
  const chapters=planChaptersRead(ws);
  return{total,done,pct:total?Math.round(done/total*100):0,by,chapters}}
 function weekInfo(ws){return{num:Math.round((parse(ws)-parse(weekStart(S.cycleStart)))/(7*864e5))+1}}
@@ -334,7 +561,7 @@ function sp(ws){return S.spelling[ws]||(S.spelling[ws]={words:[],quiz:null,notes
 function achievements(){
  const weeks=new Set([...Object.keys(S.done).map(k=>weekStart(k.split('|')[0])),...S.readingLog.map(e=>weekStart(e.date))]);
  let perfect=false,three=false;weeks.forEach(w=>{const st=weekStats(w);if(st.total>=10&&st.pct===100)perfect=true;{const rp=readPlan(w);if(rp&&st.chapters>=rp.goal)three=true}});
- const cursiveDone=Object.values(S.cursiveDone).filter(Boolean).length;
+ const cursiveDone=Array.from({length:32},(_,i)=>i+1).filter(cursiveComplete).length;
  const spellN=Object.values(S.spellDone).filter(Boolean).length;
  const sumOk=Object.keys(S.done).some(k=>S.done[k]&&/\|summary$/.test(k));
  const bookDone=S.books.some(b=>b.status==='done'||(b.total>0&&readSet(b).size>=b.total));
@@ -448,12 +675,19 @@ function viewSpelling(){const n=schoolWeek(weekStart(TODAY())),done=Object.keys(
   <p>${n>=1&&n<=32?`This week is <b>Week ${n}</b>. Check the box when you have practiced the spelling list.`:'Check each week after you practice its spelling list.'}</p>
   ${listGrid('spell')}</div>`}
 
-function viewCursive(){const ws=weekStart(TODAY()),n=schoolWeek(ws),ok=n>=1&&n<=32,done=Object.keys(S.cursiveDone).filter(k=>S.cursiveDone[k]).length;
- return`<div class="card" style="border-color:var(--cursive)"><div class="row between"><h2>Cursive letters this week</h2><span class="badge" style="background:var(--cursive);color:var(--chk)">${done} of 32 weeks done</span></div>
-  ${ok?`<div class="bigscript">${esc(lettersFor(n))}</div><div class="tasks">${weeklyCheck('cursive',ws)}</div><p class="hint">Practice these letters with pencil and paper, then check the box.</p>
-  <details class="noprint"><summary>Change this week's letters</summary><label class="f" style="margin-top:8px">Letters<input type="text" data-bind="cursiveLetters.${n}" data-re="1" value="${esc(lettersFor(n))}"></label></details>`:'<p>No letters are planned for this week. Set the start date in Settings.</p>'}
-  ${bar(Math.round(done/32*100),'var(--cursive)')}</div>
- <div class="card"><h2>Letters for every week</h2>${listGrid('cursive')}</div>`}
+function viewCursive(){const cw=schoolWeek(weekStart(TODAY())),sel=ui.curWeek||Math.min(32,Math.max(1,cw)),c=CUR[sel],it=S.cursiveItems[sel]||{},p=cursiveProg(sel);
+ const cb=(k,txt,cls)=>`<label class="task t-cursive ${it[k]?'done':''} ${cls||''}"><input type="checkbox" data-act="curItem" data-n="${sel}" data-k="${k}" ${it[k]?'checked':''}><span class="box"></span><span class="lbl">${esc(txt)}</span></label>`;
+ const detail=c?`<div class="card" style="border-color:var(--cursive)"><div class="row between"><h2>Week ${sel}${sel===cw?' · this week':''}</h2><span class="badge" style="background:var(--cursive);color:var(--chk)">${p.done} of ${p.total} done</span></div>
+  <div class="bigscript">${esc(c.label)}</div>${bar(Math.round(p.done/p.total*100),'var(--cursive)')}
+  <p class="hint">Write each one in cursive on paper with a pencil. Check the box after you finish it.</p>
+  <h3>Word Practice</h3><div class="lists">${c.words.map((w,i)=>cb('w'+i,w)).join('')}</div>
+  <h3>Sentence Practice</h3><div class="tasks">${c.sentences.map((x,i)=>cb('s'+i,(i+1)+'. '+x)).join('')}</div>
+  <div class="tasks">${cb('photo','📸 Send a photo of this activity to Dani','photo')}</div></div>`
+  :`<div class="card" style="border-color:var(--cursive)"><h2>Week ${sel}</h2><div class="bigscript">${esc(lettersFor(sel))}</div><p>The cursive words and sentences for this week will be added soon.</p></div>`;
+ const picker=Array.from({length:32},(_,i)=>i+1).map(n=>{const q=cursiveProg(n),full=cursiveComplete(n);
+  return`<button class="wkpick ${n===sel?'sel':''} ${full?'full':''}" data-act="curWeek" data-n="${n}" aria-pressed="${n===sel}"><b>Week ${n}${n===cw?' ⭐':''}</b><span class="small">${esc(lettersFor(n))}</span><span class="small st">${CUR[n]?(full?'✅ Done':q.done+' of '+q.total):'Coming soon'}</span></button>`}).join('');
+ return`${detail}
+ <div class="card"><h2>Choose a week</h2><div class="picker">${picker}</div></div>`}
 
 const TABS=[['today','Today'],['week','Week'],['month','Month'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive']];
 const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,reading:viewReading,spelling:viewSpelling,cursive:viewCursive};
@@ -480,6 +714,8 @@ function toggleTask(ds,id,on){const key=ds+'|'+id,t=tasksFor(ds).find(x=>x.id===
   else if(t&&t.type==='read')toast('Chapter logged in your reading tracker');}}
 
 const A={
+ curWeek:e=>{ui.curWeek=+e.dataset.n;render();window.scrollTo(0,0)},
+ openCursive:e=>{ui.curWeek=+e.dataset.n;ui.tab='cursive';render();window.scrollTo(0,0)},
  tab:e=>{ui.tab=e.dataset.tab;render();window.scrollTo(0,0)},
  toggle:()=>{},
  prevDay:()=>{ui.date=addDays(ui.date,-1);render()},nextDay:()=>{ui.date=addDays(ui.date,1);render()},today:()=>{ui.date=TODAY();render()},
@@ -503,6 +739,8 @@ function shiftMonth(n){const[y,m]=ui.month.split('-').map(Number),d=new Date(y,m
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='INPUT')return;const f=A[el.dataset.act];if(f)f(el)});
 document.addEventListener('change',e=>{const el=e.target;
  if(el.dataset.act==='toggle'){toggleTask(el.dataset.date,el.dataset.id,el.checked);return}
+ if(el.dataset.act==='curItem'){const n=el.dataset.n,it=S.cursiveItems[n]||(S.cursiveItems[n]={});if(el.checked)it[el.dataset.k]=true;else delete it[el.dataset.k];save();render();
+  if(el.checked)toast(el.dataset.k==='photo'?'Thank you! Dani will love to see it.':cursiveComplete(+n)?'Week complete! Beautiful cursive!':'Nice writing!');return}
  if(el.dataset.act==='listCheck'){const st=el.dataset.kind==='spell'?S.spellDone:S.cursiveDone;if(el.checked)st[el.dataset.n]=true;else delete st[el.dataset.n];save();render();if(el.checked)toast(el.dataset.kind==='spell'?'Spelling list done. Great job!':'Cursive practice done. Beautiful!');return}
  if(el.id==='importFile'&&el.files[0]){el.files[0].text().then(t=>{try{S=fixBooks(Object.assign(defaultState(),JSON.parse(t)));save();render();toast('Backup restored')}catch(err){toast('That file is not a planner backup')}});return}
  if(el.dataset.bind&&el.dataset.re){let v=el.value;if(el.dataset.num)v=v===''?0:+v;setPath(S,el.dataset.bind,v);save();render()}});
@@ -516,7 +754,7 @@ const PCSS='body{font-family:Arial,sans-serif;color:#000;margin:18px}h1{margin:0
 function pdoc(title,body){return`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${PCSS}</style></head><body>${body}</body></html>`}
 async function savePrint(kind){let html,name;
  if(kind==='week'){const ws=weekStart(ui.date),wi=weekInfo(ws),st=weekStats(ws);name='planner-week-'+ws+'.html';
-  html=pdoc('Week of '+ws,`<h1>${esc(S.name)}'s Planner · ${short(ws)} – ${short(addDays(ws,6))}</h1><div class="sub">Week ${wi.num} · Goals: CIE lessons ${lessonWeek(ws)?lessonWeek(ws).first+'–'+lessonWeek(ws).last:'none planned'} (${st.by.cie[0]}/${st.by.cie[1]}), ${readPlan(ws)?'reading '+chRange(readPlan(ws))+' ('+st.chapters+'/'+readPlan(ws).goal+'), one reading summary':'no reading assigned'}</div><div class="g">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i);return`<div class="d ${isTutor(d)?'t':''}"><b>${DOW[dowOf(d)]} ${short(d)}${isTutor(d)?' ★ Tutoring (30 min)':''}</b>${tasksFor(d).map(t=>`<div class="i">${isDone(d,t.id)?'☑':'☐'} ${esc(t.label)}</div>`).join('')||'<div class="i">Free day</div>'}</div>`}).join('')}<div class="d"><b>This week</b>${(()=>{const n=schoolWeek(ws);return n>=1&&n<=32?`<div class="i">${S.spellDone[n]?'☑':'☐'} Spelling Week ${n}</div><div class="i">${S.cursiveDone[n]?'☑':'☐'} Cursive: ${esc(lettersFor(n))}</div>`:''})()}</div></div>`)}
+  html=pdoc('Week of '+ws,`<h1>${esc(S.name)}'s Planner · ${short(ws)} – ${short(addDays(ws,6))}</h1><div class="sub">Week ${wi.num} · Goals: CIE lessons ${lessonWeek(ws)?lessonWeek(ws).first+'–'+lessonWeek(ws).last:'none planned'} (${st.by.cie[0]}/${st.by.cie[1]}), ${readPlan(ws)?'reading '+chRange(readPlan(ws))+' ('+st.chapters+'/'+readPlan(ws).goal+'), one reading summary':'no reading assigned'}</div><div class="g">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i);return`<div class="d ${isTutor(d)?'t':''}"><b>${DOW[dowOf(d)]} ${short(d)}${isTutor(d)?' ★ Tutoring (30 min)':''}</b>${tasksFor(d).map(t=>`<div class="i">${isDone(d,t.id)?'☑':'☐'} ${esc(t.label)}</div>`).join('')||'<div class="i">Free day</div>'}</div>`}).join('')}<div class="d"><b>This week</b>${(()=>{const n=schoolWeek(ws);return n>=1&&n<=32?`<div class="i">${S.spellDone[n]?'☑':'☐'} Spelling Week ${n}</div><div class="i">${cursiveComplete(n)?'☑':'☐'} Cursive: ${esc(lettersFor(n))}</div>`:''})()}</div></div>`)}
  else{const[y,m]=ui.month.split('-').map(Number),first=iso(new Date(y,m-1,1)),last=iso(new Date(y,m,0));name='planner-month-'+ui.month+'.html';
   let cells='';for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7))for(let i=0;i<7;i++){const d=addDays(ws,i),inM=d.slice(0,7)===ui.month;cells+=`<div class="${isTutor(d)&&inM?'t':''}">${inM?`<b>${parse(d).getDate()}</b>${isTutor(d)?' ★ Tutoring':''}<br>${(dowOf(d)===1&&0)?'':''}`:''}</div>`}
   const wk=[];for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7)){const wi=weekInfo(ws);wk.push(`Week ${wi.num} (${short(ws)})`)}
