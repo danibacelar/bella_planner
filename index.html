@@ -222,6 +222,13 @@ const T=(id,label,type)=>({id,label,type,base:true});
    To add more lessons later, add more numbers to PACE (lessons are numbered in order). */
 const START_WEEK='2026-10-12';
 const PACE=[6,6,6,6,6,6,6,4,4,4,3];
+/* City of Ember (19 chapters) is split over the weeks from Oct 19 through lesson 57: chapters per school week
+   (week 1 has no reading). 9 weeks of 2 chapters + 1 final chapter = 19. Add numbers here when the next book starts. */
+const READ_GOALS=[0,2,2,2,2,2,2,2,2,2,1];
+const readGoal=ws=>{const k=schoolWeek(ws)-1;return k>=0?(READ_GOALS[k]||0):0};
+function readPlan(ws){const k=schoolWeek(ws)-1,goal=readGoal(ws);if(!goal)return null;const from=1+READ_GOALS.slice(0,k).reduce((a,b)=>a+b,0);return{week:k+1,goal,from,to:from+goal-1}}
+const chRange=rp=>rp.from===rp.to?'chapter '+rp.from:'chapters '+rp.from+'–'+rp.to;
+function fixBooks(x){const e=x.books&&x.books.find(b=>b.id==='ember');if(e&&e.total===20)e.total=19;return x}
 /* How many lessons fall on Monday, Wednesday, Friday for a week of n lessons. */
 const SPLIT={6:[3,2,1],4:[2,1,1],3:[1,1,1]};
 function lessonWeek(ws){const k=Math.round((parse(ws)-parse(weekStart(S.cycleStart)))/(7*864e5));const n=k>=0?(PACE[k]||0):0;if(!n)return null;
@@ -231,13 +238,13 @@ function planFor(ds){const dw=dowOf(ds),lw=lessonWeek(weekStart(ds));
  const [mon,wed,fri]=sp,f=lw?lw.first:0;
  const les=(from,count,k0)=>Array.from({length:count},(_,i)=>T('cie'+(k0+i),'CIE Lesson '+(from+i),'cie'));
  const rng=(a,b)=>a===b?'lesson '+a:'lessons '+a+'–'+b;
- const READ=T('read','Read 1 chapter','read');
+ const rg=readGoal(weekStart(ds)),rd=rg>=3?[1,3,5]:rg===2?[1,3]:rg===1?[3]:[],rt=rd.includes(dw)?[T('read','Read 1 chapter','read')]:[];
  const tutor=label=>[T('t-review',label,'tutor'),T('t-spell','Spelling activities','tutor'),T('t-cursive','Cursive practice','tutor')];
- if(dw===1)return[...les(f,mon,1),READ];
+ if(dw===1)return[...les(f,mon,1),...rt];
  if(dw===2)return tutor(mon>0?'Review '+rng(f,f+mon-1):'Review lessons');
- if(dw===3)return[...les(f+mon,wed,mon+1),READ];
+ if(dw===3)return[...les(f+mon,wed,mon+1),...rt];
  if(dw===4)return tutor(wed+fri>0?'Review '+rng(f+mon,lw.last):'Review lessons');
- if(dw===5)return[...les(f+mon+wed,fri,mon+wed+1),READ,T('summary','Write reading summary','summary')];
+ if(dw===5)return[...les(f+mon+wed,fri,mon+wed+1),...rt,...(rg>0?[T('summary','Write reading summary','summary')]:[])];
  return[]}
 const TYPE_NAME={cie:'CIE',read:'Reading',spell:'Spelling',cursive:'Cursive',summary:'Summary',tutor:'Tutor',plan:'Plan',catch:'Catch-up',custom:'Mine'};
 const FOCUS=[['Genre','Story Elements'],['Tone','Expressing Opinion'],['Summary'],["Author's Purpose"],['Nonfiction Literature'],['Parts of Speech'],['Sentence Structure'],['Punctuation']];
@@ -246,13 +253,13 @@ const isTutor=ds=>{const w=dowOf(ds);return w===2||w===4};
 const overdueEligible=t=>t.base&&['cie','read','spell','cursive','summary'].includes(t.type)&&!t.id.startsWith('t-');
 
 /* ---------- state ---------- */
-function defaultState(){const t=TODAY();return{v:1,updated:0,name:'Isabella',cycleStart:START_WEEK,trackFrom:START_WEEK,chaptersPerWeek:3,
+function defaultState(){const t=TODAY();return{v:1,updated:0,name:'Isabella',cycleStart:START_WEEK,trackFrom:START_WEEK,
  done:{},custom:[],
- books:[{id:'ember',title:'City of Ember',author:'Jeanne DuPrau',total:20,status:'current'},{id:'downriver',title:'Downriver',author:'Will Hobbs',total:0,status:'next'},{id:'unteachables',title:'The Unteachables',author:'Gordon Korman',total:0,status:'next'}],
+ books:[{id:'ember',title:'City of Ember',author:'Jeanne DuPrau',total:19,status:'current'},{id:'downriver',title:'Downriver',author:'Will Hobbs',total:0,status:'next'},{id:'unteachables',title:'The Unteachables',author:'Gordon Korman',total:0,status:'next'}],
  readingLog:[],readingWeek:{},spelling:{},cursiveLog:[],cursiveWeek:{},summaries:{},reflections:{},tutorNotes:{},notes:'',weekGoals:{},spellDone:{},cursiveDone:{},cursiveLetters:{}}}
 let S=defaultState();
 const ui={tab:'today',date:TODAY(),month:TODAY().slice(0,7)};
-try{const raw=localStorage.getItem(LS_KEY);if(raw)S=Object.assign(defaultState(),JSON.parse(raw))}catch(e){}
+try{const raw=localStorage.getItem(LS_KEY);if(raw)S=fixBooks(Object.assign(defaultState(),JSON.parse(raw)))}catch(e){}
 let local_ok=true,cloud={ref:null,state:'off',busy:false,again:false,timer:null};
 
 function persistLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));local_ok=true}catch(e){local_ok=false}}
@@ -272,7 +279,7 @@ async function initCloud(){
   const id=await user.id();if(!id)return;
   cloud.ref=db.doc('data/users/'+id+'/planner');
   const snap=await cloud.ref.get();const r=snap.exists?snap.data():null;
-  if(r&&r.json&&(r.updated||0)>(S.updated||0)){S=Object.assign(defaultState(),JSON.parse(r.json));persistLocal();render()}
+  if(r&&r.json&&(r.updated||0)>(S.updated||0)){S=fixBooks(Object.assign(defaultState(),JSON.parse(r.json)));persistLocal();render()}
   else if(S.updated>0)await push();
   else cloud.state='synced';
   if(cloud.state!=='fail')cloud.state='synced';setStatus();
@@ -306,7 +313,7 @@ function sp(ws){return S.spelling[ws]||(S.spelling[ws]={words:[],quiz:null,notes
 
 function achievements(){
  const weeks=new Set([...Object.keys(S.done).map(k=>weekStart(k.split('|')[0])),...S.readingLog.map(e=>weekStart(e.date))]);
- let perfect=false,three=false;weeks.forEach(w=>{const st=weekStats(w);if(st.total>=10&&st.pct===100)perfect=true;if(st.chapters>=3)three=true});
+ let perfect=false,three=false;weeks.forEach(w=>{const st=weekStats(w);if(st.total>=10&&st.pct===100)perfect=true;{const rp=readPlan(w);if(rp&&st.chapters>=rp.goal)three=true}});
  const cursiveDone=Object.values(S.cursiveDone).filter(Boolean).length;
  const spellN=Object.values(S.spellDone).filter(Boolean).length;
  const sumOk=Object.keys(S.done).some(k=>S.done[k]&&/\|summary$/.test(k));
@@ -315,7 +322,7 @@ function achievements(){
  return[
   {ic:'📖',n:'First Chapter',s:'Log your first chapter',on:S.readingLog.length>0},
   {ic:'🔥',n:'3-Day Streak',s:'Finish tasks 3 days in a row',on:st>=3},
-  {ic:'🏆',n:'Reading Goal',s:'3 chapters in one week',on:three},
+  {ic:'🏆',n:'Reading Goal',s:'Meet a weekly reading goal',on:three},
   {ic:'🌟',n:'Perfect Week',s:'Finish every weekday task',on:perfect},
   {ic:'✍️',n:'Cursive Star',s:'4 cursive weeks done',on:cursiveDone>=4},
   {ic:'🐝',n:'Spelling Ace',s:'Finish 4 spelling lists',on:spellN>=4},
@@ -335,8 +342,8 @@ function weekGoalsHTML(ws){const st=weekStats(ws);
  return`<div class="card"><div class="row between"><h2>Weekly goals</h2><span class="badge gold">${st.pct}% done</span></div>
   ${bar(st.pct,'var(--brand)')}
   ${lessonWeek(ws)?goalRow('CIE Language Arts lessons '+lessonWeek(ws).first+'–'+lessonWeek(ws).last,st.by.cie[0],st.by.cie[1],'var(--cie)'):'<p class="hint">No CIE lessons are planned for this week yet.</p>'}
-  ${goalRow('Reading: chapters from the novel',st.chapters,S.chaptersPerWeek,'var(--read)')}
-  ${goalRow('One reading summary',st.by.summary[0],1,'var(--summary)')}
+  ${(()=>{const rp=readPlan(ws);return rp?goalRow('Reading: '+chRange(rp),st.chapters,rp.goal,'var(--read)'):'<p class="hint">No reading is assigned this week.</p>'})()}
+  ${st.by.summary[1]?goalRow('One reading summary',st.by.summary[0],1,'var(--summary)'):''}
   <div class="tasks">${weeklyCheck('spell',ws)}${weeklyCheck('cursive',ws)}</div></div>`}
 function dayCard(ds){const tut=isTutor(ds),st=dayStats(ds);
  return`<section class="day ${tut?'tutor':''} ${ds===TODAY()?'today':''}"><header><button class="dayname" data-act="gotoDay" data-date="${ds}"><b>${DOW[dowOf(ds)]}</b><span>${short(ds)}</span></button>${tut?'<span class="badge gold">⭐ Tutor · 30 min</span>':''}${st.total?`<span class="cnt">${st.done}/${st.total}</span>`:''}</header>${st.total?bar(st.pct,tut?'var(--tutor)':'var(--brand)'):''}<div class="tasks">${tasksFor(ds).map(t=>taskRow(ds,t)).join('')||'<p class="muted small">Free day. No assignments.</p>'}</div></section>`}
@@ -400,14 +407,14 @@ function viewReading(){const ws=weekStart(ui.date),b=curBook(),rw=S.readingWeek[
    <div class="chapters">${Array.from({length:b.total},(_,i)=>i+1).map(c=>`<button class="ch ${r.has(c)?'on':''} ${c===n?'next':''}" data-act="chap" data-n="${c}" aria-pressed="${r.has(c)}" aria-label="Chapter ${c}">${c}</button>`).join('')}</div>
    <p class="hint">${n?`Next up: chapter ${n}. Checking "Read 1 chapter" in your daily list marks it here. You can also tap a number.`:'You read every chapter. Mark the book finished below!'}</p>`
    :`<p>Enter how many chapters this book has (check your copy) to see the chapter map. You have read ${r.size} so far.</p>`}</div>`}
- const sched=[[1,'Mon'],[3,'Wed'],[5,'Fri']].map(([i,l])=>{const d=addDays(ws,i-1),dn=isDone(d,'read');return`<span class="badge" style="background:${dn?'var(--read)':'var(--surface2)'};color:${dn?'var(--chk)':'var(--ink)'};border:2px solid var(--read)">${l} ${dn?'✓':'1 chapter'}</span>`}).join(' ');
+ const sched=[0,1,2,3,4].map(i=>addDays(ws,i)).filter(d=>tasksFor(d).some(t=>t.type==='read')).map(d=>{const dn=isDone(d,'read');return`<span class="badge" style="background:${dn?'var(--read)':'var(--surface2)'};color:${dn?'var(--chk)':'var(--ink)'};border:2px solid var(--read)">${DOW[dowOf(d)].slice(0,3)} ${dn?'✓':'1 chapter'}</span>`}).join(' '),rp=readPlan(ws);
  return`${weekNav()}
  <div class="grid2"><div style="display:flex;flex-direction:column;gap:16px;min-width:0">${cur}</div>
  <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
-  <div class="card"><h2>This week's reading</h2>${goalRow('Chapters read',st.chapters,S.chaptersPerWeek,'var(--read)')}
-   <div class="row">${sched}</div><p class="hint">Suggested schedule: Monday, Wednesday, and Friday or Saturday.</p>
-   <p><b>Assigned this week:</b> ${(()=>{const b=curBook();if(!b)return'-';const n=nextChapter(b);return n?'chapter '+n+(S.chaptersPerWeek>1?' and the next '+(S.chaptersPerWeek-1):''):'finished!'})()}</p></div>
+  <div class="card"><h2>This week's reading goal</h2>${rp?`<p style="font-family:var(--display);font-size:1.4rem">${esc(bookById('ember')?bookById('ember').title:'Novel')}: ${chRange(rp)}</p>${goalRow('Chapters read this week',st.chapters,rp.goal,'var(--read)')}<div class="row">${sched}</div><p class="hint">Read a little each day. Checking "Read 1 chapter" in your daily list marks it in your tracker.</p>`:'<p>No reading is assigned this week. Enjoy it!</p>'}</div>
  </div></div>
+ <div class="card"><h2>Reading plan: ${esc(bookById('ember')?bookById('ember').title:'novel')}</h2><div class="tasks">${READ_GOALS.map((g,k)=>{if(!g)return'';const w=addDays(weekStart(S.cycleStart),7*k),rp2=readPlan(w),n=S.readingLog.filter(e=>e.date>=w&&e.date<=addDays(w,6)).length,p=Math.round(Math.min(n,g)/g*100);
+  return`<div class="goal ${n>=g?'ok':''}" style="--c:var(--read);${w===ws?'font-weight:800':''}"><b>Week ${k+1} · ${short(w)} – ${short(addDays(w,4))} · ${chRange(rp2)}${w===ws?' (this week)':''}</b><span class="n">${n}/${g}</span>${bar(p,'var(--read)')}</div>`}).join('')}</div></div>
  <div class="card"><h2>My bookshelf</h2>${S.books.map((x,i)=>`<div class="book ${x.status==='current'?'cur':''}"><div class="meta"><b>${esc(x.title)}</b><div class="small muted">${esc(x.author)} · ${readSet(x).size}${x.total?'/'+x.total:''} chapters · ${x.status==='current'?'Reading now':x.status==='done'?'Finished':'Up next'}</div></div>
    ${x.status!=='current'?`<button class="btn sm ${x.status==='done'?'ghost':''}" data-act="bookCur" data-i="${i}">Make current</button>`:''}${x.status!=='done'?`<button class="btn ghost sm" data-act="bookDone" data-i="${i}">Mark finished</button>`:''}</div>`).join('')}
   <div class="row noprint"><input type="text" id="bkTitle" placeholder="Add a book title" style="flex:1;min-width:160px"><input type="text" id="bkAuth" placeholder="Author" style="flex:1;min-width:120px"><button class="btn sm" data-act="addBook">Add book</button></div></div>
@@ -442,8 +449,7 @@ function viewSettings(){
  return`<div class="card"><h2>Planner settings</h2>
   <div class="row"><label class="f">Student name<input type="text" data-bind="name" data-re="1" value="${esc(S.name)}"></label>
   <label class="f">Week 1 starts on (Monday)<input type="date" data-bind="cycleStart" data-re="1" value="${S.cycleStart}"></label>
-  <label class="f">Count missing work from<input type="date" data-bind="trackFrom" data-re="1" value="${S.trackFrom}"></label>
-  <label class="f" style="width:150px">Chapters per week<input type="number" min="1" max="14" data-bind="chaptersPerWeek" data-num="1" data-re="1" value="${S.chaptersPerWeek}"></label></div>
+  <label class="f">Count missing work from<input type="date" data-bind="trackFrom" data-re="1" value="${S.trackFrom}"></label></div>
   <p class="hint">Week 1 sets spelling List 1, the first cursive letters and the first Language Arts focus.</p>
   <h3>Backup</h3><p class="hint">Everything is saved in this browser automatically${cloud.ref?' and in your Claude account':''}. A backup file is extra protection.</p>
   <div class="row"><button class="btn sm" data-act="export">Save backup file</button><label class="btn ghost sm" style="cursor:pointer">Restore from backup<input type="file" id="importFile" accept=".json,application/json" hidden></label></div></div>`}
@@ -496,7 +502,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
 document.addEventListener('change',e=>{const el=e.target;
  if(el.dataset.act==='toggle'){toggleTask(el.dataset.date,el.dataset.id,el.checked);return}
  if(el.dataset.act==='listCheck'){const st=el.dataset.kind==='spell'?S.spellDone:S.cursiveDone;if(el.checked)st[el.dataset.n]=true;else delete st[el.dataset.n];save();render();if(el.checked)toast(el.dataset.kind==='spell'?'Spelling list done. Great job!':'Cursive practice done. Beautiful!');return}
- if(el.id==='importFile'&&el.files[0]){el.files[0].text().then(t=>{try{S=Object.assign(defaultState(),JSON.parse(t));save();render();toast('Backup restored')}catch(err){toast('That file is not a planner backup')}});return}
+ if(el.id==='importFile'&&el.files[0]){el.files[0].text().then(t=>{try{S=fixBooks(Object.assign(defaultState(),JSON.parse(t)));save();render();toast('Backup restored')}catch(err){toast('That file is not a planner backup')}});return}
  if(el.dataset.bind&&el.dataset.re){let v=el.value;if(el.dataset.num)v=v===''?0:+v;setPath(S,el.dataset.bind,v);save();render()}});
 document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.bind||el.dataset.re)return;
  let v=el.value;if(el.dataset.num)v=v===''?0:+v;setPath(S,el.dataset.bind,v);save();
@@ -508,7 +514,7 @@ const PCSS='body{font-family:Arial,sans-serif;color:#000;margin:18px}h1{margin:0
 function pdoc(title,body){return`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${PCSS}</style></head><body>${body}</body></html>`}
 async function savePrint(kind){let html,name;
  if(kind==='week'){const ws=weekStart(ui.date),wi=weekInfo(ws),st=weekStats(ws);name='planner-week-'+ws+'.html';
-  html=pdoc('Week of '+ws,`<h1>${esc(S.name)}'s Planner · ${short(ws)} – ${short(addDays(ws,6))}</h1><div class="sub">Week ${wi.num}: ${wi.focus.map(esc).join(' + ')} · Goals: CIE lessons ${lessonWeek(ws)?lessonWeek(ws).first+'–'+lessonWeek(ws).last:'none planned'} (${st.by.cie[0]}/${st.by.cie[1]}), ${S.chaptersPerWeek} chapters (${st.chapters}/${S.chaptersPerWeek}), one reading summary</div><div class="g">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i);return`<div class="d ${isTutor(d)?'t':''}"><b>${DOW[dowOf(d)]} ${short(d)}${isTutor(d)?' ★ Tutoring (30 min)':''}</b>${tasksFor(d).map(t=>`<div class="i">${isDone(d,t.id)?'☑':'☐'} ${esc(t.label)}</div>`).join('')||'<div class="i">Free day</div>'}</div>`}).join('')}<div class="d"><b>This week</b>${(()=>{const n=schoolWeek(ws);return n>=1&&n<=32?`<div class="i">${S.spellDone[n]?'☑':'☐'} Spelling List ${n}</div><div class="i">${S.cursiveDone[n]?'☑':'☐'} Cursive: ${esc(lettersFor(n))}</div>`:''})()}</div></div>`)}
+  html=pdoc('Week of '+ws,`<h1>${esc(S.name)}'s Planner · ${short(ws)} – ${short(addDays(ws,6))}</h1><div class="sub">Week ${wi.num}: ${wi.focus.map(esc).join(' + ')} · Goals: CIE lessons ${lessonWeek(ws)?lessonWeek(ws).first+'–'+lessonWeek(ws).last:'none planned'} (${st.by.cie[0]}/${st.by.cie[1]}), ${readPlan(ws)?'reading '+chRange(readPlan(ws))+' ('+st.chapters+'/'+readPlan(ws).goal+'), one reading summary':'no reading assigned'}</div><div class="g">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i);return`<div class="d ${isTutor(d)?'t':''}"><b>${DOW[dowOf(d)]} ${short(d)}${isTutor(d)?' ★ Tutoring (30 min)':''}</b>${tasksFor(d).map(t=>`<div class="i">${isDone(d,t.id)?'☑':'☐'} ${esc(t.label)}</div>`).join('')||'<div class="i">Free day</div>'}</div>`}).join('')}<div class="d"><b>This week</b>${(()=>{const n=schoolWeek(ws);return n>=1&&n<=32?`<div class="i">${S.spellDone[n]?'☑':'☐'} Spelling List ${n}</div><div class="i">${S.cursiveDone[n]?'☑':'☐'} Cursive: ${esc(lettersFor(n))}</div>`:''})()}</div></div>`)}
  else{const[y,m]=ui.month.split('-').map(Number),first=iso(new Date(y,m-1,1)),last=iso(new Date(y,m,0));name='planner-month-'+ui.month+'.html';
   let cells='';for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7))for(let i=0;i<7;i++){const d=addDays(ws,i),inM=d.slice(0,7)===ui.month;cells+=`<div class="${isTutor(d)&&inM?'t':''}">${inM?`<b>${parse(d).getDate()}</b>${isTutor(d)?' ★ Tutoring':''}<br>${(dowOf(d)===1&&0)?'':''}`:''}</div>`}
   const wk=[];for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7)){const wi=weekInfo(ws);wk.push(`Week ${wi.num} (${short(ws)}): ${wi.focus.join(' + ')}`)}
