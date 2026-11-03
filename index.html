@@ -8,19 +8,19 @@
 :root{
   --bg:#f3f0ff; --surface:#ffffff; --surface2:#faf8ff; --ink:#2a2150; --muted:#655e8c; --line:#e0daf5;
   --brand:#6247e6; --brand-ink:#ffffff; --focus:#2a2150;
-  --cie:#2f6fe4; --read:#0b8f78; --spell:#d9690c; --cursive:#d6338a; --summary:#d8433f; --tutor:#f0b400; --plan:#7a6cc4; --custom:#5b5f7a; --catch:#7a6cc4;
+  --math:#7c3aed; --cie:#2f6fe4; --read:#0b8f78; --spell:#d9690c; --cursive:#d6338a; --summary:#d8433f; --tutor:#f0b400; --plan:#7a6cc4; --custom:#5b5f7a; --catch:#7a6cc4;
   --good:#1f9d55; --late:#d8433f; --chk:#ffffff;
   --display:'Fredoka','Trebuchet MS',system-ui,sans-serif; --body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif; --script:'Dancing Script','Brush Script MT',cursive;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#171332; --surface:#231d47; --surface2:#1d1840; --ink:#f1edff; --muted:#b0a9d9; --line:#3a3268;
   --brand:#9d88ff; --brand-ink:#17123a; --focus:#f1edff;
-  --cie:#6aa0ff; --read:#34d3b4; --spell:#ffa24a; --cursive:#ff7ac0; --summary:#ff7a74; --tutor:#ffc933; --plan:#a89bf0; --custom:#9aa0c4; --catch:#a89bf0;
+  --math:#b79cff; --cie:#6aa0ff; --read:#34d3b4; --spell:#ffa24a; --cursive:#ff7ac0; --summary:#ff7a74; --tutor:#ffc933; --plan:#a89bf0; --custom:#9aa0c4; --catch:#a89bf0;
   --good:#4ade80; --late:#ff7a74; --chk:#17123a; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#171332; --surface:#231d47; --surface2:#1d1840; --ink:#f1edff; --muted:#b0a9d9; --line:#3a3268;
   --brand:#9d88ff; --brand-ink:#17123a; --focus:#f1edff;
-  --cie:#6aa0ff; --read:#34d3b4; --spell:#ffa24a; --cursive:#ff7ac0; --summary:#ff7a74; --tutor:#ffc933; --plan:#a89bf0; --custom:#9aa0c4; --catch:#a89bf0;
+  --math:#b79cff; --cie:#6aa0ff; --read:#34d3b4; --spell:#ffa24a; --cursive:#ff7ac0; --summary:#ff7a74; --tutor:#ffc933; --plan:#a89bf0; --custom:#9aa0c4; --catch:#a89bf0;
   --good:#4ade80; --late:#ff7a74; --chk:#17123a; color-scheme:dark}
 
 *{box-sizing:border-box}
@@ -194,6 +194,18 @@ button.task{width:100%;text-align:left;font:inherit;color:inherit}
 .task.on .box{background:var(--c)}.task.on .box::after{content:"";width:7px;height:13px;border:solid var(--chk);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
 .task.photo{--c:var(--tutor);--chk:#2a2150}
 .lists .task .lbl{overflow-wrap:anywhere}
+.home{display:flex;flex-direction:column;align-items:center;gap:22px;padding:14px 0 30px;text-align:center}
+.home .lead{font-family:var(--display);font-size:1.5rem}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:20px;width:100%;max-width:780px}
+.choice{border:0;border-radius:28px;padding:34px 20px;display:flex;flex-direction:column;gap:6px;align-items:center;color:var(--chk);background:var(--c);box-shadow:0 8px 0 color-mix(in srgb,var(--c) 55%,#000)}
+.choice .cn{font-family:var(--display);font-size:3.6rem;line-height:1}.choice .cd{font-weight:800}
+.choice .cs{background:color-mix(in srgb,var(--chk) 20%,transparent);border-radius:999px;padding:3px 14px;font-weight:800;margin-top:10px}
+.choice.ela{--c:var(--cie)}.choice.math{--c:var(--math)}.choice:active{transform:translateY(4px)}
+.top.center{justify-content:center;text-align:center}.top.center .brand{align-items:center}
+.t-math{--c:var(--math)}
+.mbanner{border-radius:16px;padding:12px 16px;font-weight:800;border:2px solid var(--good);background:color-mix(in srgb,var(--good) 12%,var(--surface))}
+.mbanner.warn{border-color:var(--tutor);background:color-mix(in srgb,var(--tutor) 18%,var(--surface))}
+.mbanner.bad{border-color:var(--late);background:color-mix(in srgb,var(--late) 12%,var(--surface))}
 .bigscript{font-family:var(--script);font-size:3.2rem;line-height:1.2;color:var(--cursive)}
 
 @media print{
@@ -209,7 +221,7 @@ button.task{width:100%;text-align:left;font:inherit;color:inherit}
 </style>
 
 <div class="wrap">
-  <div class="top">
+  <div class="top" id="top">
     <div class="brand"><span class="script" id="nameLine">Isabella's</span><span class="title">Study Planner</span>
       <div class="status noprint" id="savestat"><i></i><span>Saved</span></div></div>
     <div class="weekbadge" id="weekbadge"></div>
@@ -284,9 +296,9 @@ const overdueEligible=t=>t.base&&['cie','read','spell','cursive','summary'].incl
 function defaultState(){const t=TODAY();return{v:1,updated:0,name:'Isabella',cycleStart:START_WEEK,trackFrom:START_WEEK,
  done:{},custom:[],
  books:[{id:'ember',title:'City of Ember',author:'Jeanne DuPrau',total:19,status:'current'},{id:'downriver',title:'Downriver',author:'Will Hobbs',total:0,status:'next'},{id:'unteachables',title:'The Unteachables',author:'Gordon Korman',total:0,status:'next'}],
- readingLog:[],readingWeek:{},spelling:{},cursiveLog:[],cursiveWeek:{},summaries:{},reflections:{},tutorNotes:{},notes:'',weekGoals:{},spellDone:{},cursiveDone:{},cursiveLetters:{},cursiveItems:{}}}
+ readingLog:[],readingWeek:{},spelling:{},cursiveLog:[],cursiveWeek:{},summaries:{},reflections:{},tutorNotes:{},notes:'',weekGoals:{},spellDone:{},cursiveDone:{},cursiveLetters:{},cursiveItems:{},mathDone:{}}}
 let S=defaultState();
-const ui={curWeek:0,tab:'today',date:TODAY(),month:TODAY().slice(0,7)};
+const ui={app:'home',curWeek:0,tab:'today',date:TODAY(),month:TODAY().slice(0,7)};
 try{const raw=localStorage.getItem(LS_KEY);if(raw)S=fixBooks(Object.assign(defaultState(),JSON.parse(raw)))}catch(e){}
 let local_ok=true,cloud={ref:null,state:'off',busy:false,again:false,timer:null};
 
@@ -553,7 +565,7 @@ const bookById=id=>S.books.find(b=>b.id===id);
 const readSet=b=>new Set(S.readingLog.filter(e=>e.bookId===b.id).map(e=>e.chapter));
 function nextChapter(b){const r=readSet(b);for(let n=1;n<=(b.total||999);n++)if(!r.has(n))return n;return null}
 function nextTutorDay(from){for(let i=0;i<8;i++){const d=addDays(from,i);if(isTutor(d))return d}return from}
-function overdue(){const out=[];const t=TODAY();let start=addDays(t,-14);if(S.trackFrom>start)start=S.trackFrom;
+function overdue(){const out=[];const t=TODAY();const start=S.trackFrom;
  for(let d=start;d<t;d=addDays(d,1)){const ts=tasksFor(d).filter(x=>(overdueEligible(x)||x.custom)&&!isDone(d,x.id));if(ts.length)out.push({date:d,tasks:ts})}return out}
 function streak(){const days=new Set(Object.keys(S.done).filter(k=>S.done[k]).map(k=>k.split('|')[0]));let d=TODAY(),n=0;if(!days.has(d))d=addDays(d,-1);while(days.has(d)){n++;d=addDays(d,-1)}return n}
 function sp(ws){return S.spelling[ws]||(S.spelling[ws]={words:[],quiz:null,notes:''})}
@@ -607,7 +619,7 @@ function viewToday(){const ds=ui.date,tut=isTutor(ds),st=dayStats(ds),wi=weekInf
  const msg=st.total===0?'No assignments today. Enjoy your free day!':st.total&&st.done===st.total?'Everything is done for today. Awesome work!':st.done?'Nice! Keep going, you are doing great.':'Pick one thing and get started.';
  return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevDay">‹ Yesterday</button><div class="ttl">${longDate(ds)}${ds===TODAY()?' <span class="badge today">Today</span>':''}</div><button class="btn ghost sm" data-act="nextDay">Tomorrow ›</button></div>
  ${ds!==TODAY()?'<div class="row noprint" style="justify-content:center"><button class="btn sm" data-act="today">Jump to today</button></div>':''}
- ${ds===TODAY()||ds>TODAY()?'':''}
+ ${banner(elaStatus())}
  <div class="grid2">
   <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
    <div class="card" style="${tut?'border-color:var(--tutor)':''}">
@@ -626,6 +638,7 @@ function viewToday(){const ds=ui.date,tut=isTutor(ds),st=dayStats(ds),wi=weekInf
 
 function viewWeek(){const ws=weekStart(ui.date),wi=weekInfo(ws);
  return`${weekNav()}
+ ${banner(elaStatus())}
  <div class="row noprint between"><span class="hint">To print this page, press Ctrl+P (Cmd+P on a Mac), or save a clean copy.</span><button class="btn sm" data-act="savePrintWeek">Save printable week</button></div>
  ${weekGoalsHTML(ws)}
  <div class="days">${[0,1,2,3,4,5,6].map(i=>dayCard(addDays(ws,i))).join('')}</div>`}
@@ -689,16 +702,249 @@ function viewCursive(){const cw=schoolWeek(weekStart(TODAY())),sel=ui.curWeek||M
  return`${detail}
  <div class="card"><h2>Choose a week</h2><div class="picker">${picker}</div></div>`}
 
-const TABS=[['today','Today'],['week','Week'],['month','Month'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive']];
-const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,reading:viewReading,spelling:viewSpelling,cursive:viewCursive};
+/* ================= MATH (Math 7) ================= */
+/* Plan: lessons 1-18 are already done. Lessons 19-94 are spread over 18 school weeks starting Nov 2, 2026,
+   4-6 lessons a week (fewer on harder units). Unit tests sit right after each unit's last lesson.
+   MQ = lessons per week. Course deadline: Jun 30, 2027. */
+const MATH_START='2026-11-02',MATH_DEADLINE='2027-06-30',MATH_DONE_UPTO=18;
+const MQ=[4,4,5,4,4,4,4,4,4,4,4,4,5,5,5,4,4,4];
+const MATH_TEST_AFTER={13:1,26:2,35:3,51:4,57:5,62:6,67:7,87:8,94:9};
+const MATH_UNITS=[[1,1,13],[2,14,26],[3,27,35],[4,36,51],[5,52,57],[6,58,62],[7,63,67],[8,68,87],[9,88,94]];
+const MATH_TITLES={};
+`1|Adding Integers With the Same Sign
+2|Adding Integers With Different Signs
+3|Subtracting Integers
+4|Multiplying Integers
+5|Divide Integers
+6|Using Integers: Deciding Which Operation to Use
+7|Classify Numbers
+8|Real Number Properties: Commutative
+9|Real Number Properties: Associative Property
+10|Real Number Properties: Identity Property
+11|Real Number Properties: Distributive
+12|Order of Operations: PEMDAS
+13|Exponents
+14|Identify Different Parts of Fractions
+15|Convert Between Mixed to Improper Fractions
+16|Equivalent Fractions
+17|Divisibility Rules and Factors
+18|Prime and Composite Numbers
+19|Factor Trees
+20|Greatest Common Factor
+21|Least Common Multiple
+22|Adding and Subtracting With Like Denominators
+23|Adding and Subtracting With Unlike Denominators
+24|Compare and Order Fractions Using LCD
+25|Multiply Fractions and Mixed Numbers: Estimate
+26|Dividing Fractions
+27|Comparing and Ordering Decimals
+28|Rounding and Estimating Decimals
+29|Add and Subtract Decimals
+30|Multiplying Decimals
+31|Dividing Decimals
+32|Terminating Decimals: Convert Decimals to Fractions
+33|Convert Fractions to Decimals
+34|Using Decimals and Fractions to Solve Problems
+35|Write Numbers in Scientific Notations
+36|Terms and Expressions
+37|Translate Between Sentences and Mathematical Equations
+38|Evaluate Expressions via Substitution
+39|Using Formulas to Solve Problems
+40|Arithmetic Sequence
+41|Geometric Sequence
+42|Describe Sequence With Equations: Arithmetic Sequence
+43|Describe Sequence With Equations: Geometric Sequence
+44|Identifying Functions
+45|Identifying the Function Rule
+46|Solving Simple Equations Using Mental Math
+47|Solve Equations Using Addition and Subtraction
+48|Solve Equations Using Multiplication and Division
+49|Solve Two-Step Equations
+50|Graphing Inequalities
+51|Solving One-Step Inequalities
+52|Convert Between Fractions and Percents
+53|Convert Between Decimals and Percents: Convert Between All Three
+54|Percent of a Number
+55|Percent of Change
+56|Solving Percent Problems Using Proportion
+57|Solving Percent Problems Using Equations
+58|Graphing Ordered Pairs
+59|Graphing Linear Equations
+60|Slope
+61|Finding Slope With Formula
+62|Direct Variation
+63|Line Graphs
+64|Bar Graphs
+65|Circle Graphs
+66|Circle Graphs: Central Angle
+67|Scatter Plots
+68|Identify Basic Geometric Components
+69|Labeling Angles
+70|Names of Angles
+71|Special Pairs of Angles
+72|Parallel Lines
+73|Interior Angles of Polygons
+74|Identify Parts of a Circle
+75|Arc Length of a Circle
+76|Classifying Triangles
+77|Finding Missing Angles in Triangles
+78|Quadrilaterals
+79|Finding Missing Angles in Quadrilaterals
+80|Similar Polygons
+81|Congruent Polygons
+82|Finding Missing Side Lengths of Similar Polygons
+83|Symmetry: Rotations
+84|Translations
+85|Reflections
+86|Rotations
+87|Compound Transformations
+88|Square Numbers
+89|Square Roots
+90|The Pythagorean Theorem: Finding the Hypotenuse
+91|The Pythagorean Theorem: Finding a Shorter Side
+92|Surface Area of Rectangular and Triangular Prisms
+93|Surface Area of a Cylinder
+94|Volume of Prisms`.trim().split('\n').forEach(l=>{const i=l.indexOf('|');MATH_TITLES[+l.slice(0,i)]=l.slice(i+1)});
+const MATH_WEEKS=[];
+(function(){let n=MATH_DONE_UPTO+1;
+ MQ.forEach((q,w)=>{const items=[];
+  for(let i=0;i<q;i++,n++){items.push({id:'m'+n,n,kind:'lesson',label:'Lesson '+n+': '+MATH_TITLES[n]});const u=MATH_TEST_AFTER[n];if(u)items.push({id:'mt'+u,u,kind:'test',label:'Unit '+u+' Test'})}
+  const m=items.length,days=w===0?[2,3,4,5]:m<=4?[1,2,4,5]:m===5?[1,2,3,4,5]:[1,2,3,3,4,5];
+  items.forEach((it,i)=>{it.dow=days[i];it.date=addDays(MATH_START,7*w+it.dow-1);it.week=w+1});
+  MATH_WEEKS.push(items)})})();
+const mathAll=MATH_WEEKS.flat();
+const mathWeekIdx=ws=>Math.round((parse(ws)-parse(MATH_START))/(7*864e5));
+function mathWeekInfo(ws){const k=mathWeekIdx(ws),items=MATH_WEEKS[k];if(k<0||!items)return null;
+ const ls=items.filter(x=>x.kind==='lesson');return{num:k+1,items,first:ls[0].n,last:ls[ls.length-1].n,lessons:ls.length}}
+const mathDoneN=n=>n<=MATH_DONE_UPTO||Object.keys(S.mathDone).some(k=>k==='m'+n&&S.mathDone[k]);
+function mathStatus(){const t=TODAY(),b=mathAll.filter(x=>x.date<t&&!S.mathDone[x.id]),bl=b.filter(x=>x.kind==='lesson').length,bt=b.length-bl;
+ const rem=mathAll.filter(x=>!S.mathDone[x.id]),remL=rem.filter(x=>x.kind==='lesson').length;
+ const wl=Math.max(1,Math.ceil((parse(MATH_DEADLINE)-parse(t<MATH_START?MATH_START:t))/(7*864e5))),need=Math.round(remL/wl*10)/10;
+ const last=mathAll[mathAll.length-1].date,buffer=Math.floor((parse(MATH_DEADLINE)-parse(last))/(7*864e5));
+ const what=bl+' lesson'+(bl===1?'':'s')+(bt?(bl?' and ':'')+bt+' unit test'+(bt===1?'':'s'):'');
+ let level='ok',msg='🎉 You are on schedule. Keep it up!',short='✅ On schedule';
+ if(!rem.length){level='done';msg='🏁 All planned Math lessons are done. Amazing work!';short='🏁 All done'}
+ else if(b.length&&b.length<=2){level='warn';msg='⚠️ You are behind by '+what+'. Finish the missing work first, then keep going.';short='⚠️ '+what+' behind'}
+ else if(b.length){level='bad';msg='🚨 You are behind by '+what+'. Do 1 extra lesson a day until you catch up.';short='🚨 '+what+' behind'}
+ const pace=need>6?'⛔ To finish by Jun 30 you now need about '+need+' lessons a week. Ask Mom and Dad to adjust the plan.':'';
+ return{b,bl,bt,remL,need,wl,last,buffer,level,msg,short,pace}}
+function mathProgress(){const lessonsDone=Array.from({length:94},(_,i)=>i+1).filter(mathDoneN).length;return{done:lessonsDone,total:94,pct:Math.round(lessonsDone/94*100)}}
+function mathRow(it){const d=!!S.mathDone[it.id];
+ return`<div class="tw"><label class="task ${it.kind==='test'?'t-summary':'t-math'} ${d?'done':''}"><input type="checkbox" data-act="mtoggle" data-id="${it.id}" ${d?'checked':''}><span class="box"></span><span class="lbl">${it.kind==='test'?'📝 ':''}${esc(it.label)}</span></label></div>`}
+const banner=st=>`<div class="mbanner ${st.level}">${st.msg}${st.pace?`<div style="margin-top:4px">${st.pace}</div>`:''}</div>`;
+const mBanner=()=>banner(mathStatus());
+function mathMissing(){const st=mathStatus();if(!st.b.length)return'';
+ const days=[...new Set(st.b.map(x=>x.date))];
+ return`<div class="card od"><h2>Missing math (${st.b.length})</h2><p class="small">These were planned for earlier days. Do them first.</p>${days.map(d=>`<div><div class="small muted" style="font-weight:800;margin-bottom:4px">Planned for ${longDate(d)}</div><div class="tasks">${st.b.filter(x=>x.date===d).map(mathRow).join('')}</div></div>`).join('')}</div>`}
+function mathWeekGoals(ws){const wi=mathWeekInfo(ws);if(!wi)return'<div class="card"><h2>Math this week</h2><p class="muted">No math is planned for this week.</p></div>';
+ const ls=wi.items.filter(x=>x.kind==='lesson'),ts=wi.items.filter(x=>x.kind==='test'),ld=ls.filter(x=>S.mathDone[x.id]).length;
+ return`<div class="card"><div class="row between"><h2>Math week ${wi.num}</h2><span class="badge gold">Lessons ${wi.first}–${wi.last}</span></div>
+  ${goalRow('Lessons done',ld,ls.length,'var(--math)')}${ts.map(t=>`<div class="tasks">${mathRow(t)}</div>`).join('')}</div>`}
 
-function render(){
+function viewMToday(){const ds=ui.date,items=mathAll.filter(x=>x.date===ds),done=items.filter(x=>S.mathDone[x.id]).length;
+ return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevDay">‹ Yesterday</button><div class="ttl">${longDate(ds)}${ds===TODAY()?' <span class="badge today">Today</span>':''}</div><button class="btn ghost sm" data-act="nextDay">Tomorrow ›</button></div>
+ ${ds!==TODAY()?'<div class="row noprint" style="justify-content:center"><button class="btn sm" data-act="today">Jump to today</button></div>':''}
+ ${mBanner()}
+ <div class="grid2"><div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+  <div class="card" style="border-color:var(--math)"><div class="row between"><h2>Today's math</h2>${items.length?`<b style="font-family:var(--display)">${done}/${items.length}</b>`:''}</div>
+   ${items.length?bar(Math.round(done/items.length*100),'var(--math)')+`<div class="tasks">${items.map(mathRow).join('')}</div>`:'<p class="muted">No math planned for this day.</p>'}</div>
+  ${mathMissing()}</div>
+  <div style="display:flex;flex-direction:column;gap:16px;min-width:0">${mathWeekGoals(weekStart(ds))}</div></div>`}
+
+function mweekNav(){const ws=weekStart(ui.date),we=addDays(ws,6),wi=mathWeekInfo(ws);
+ return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevWeek">‹ Last week</button><div class="ttl">${short(ws)} – ${short(we)}<div class="hint">${wi?'Math week '+wi.num+' · Lessons '+wi.first+'–'+wi.last:'No math planned'}</div></div><button class="btn ghost sm" data-act="nextWeek">Next week ›</button></div>
+ ${ws!==weekStart(TODAY())?'<div class="row noprint" style="justify-content:center"><button class="btn sm" data-act="thisWeek">Back to this week</button></div>':''}`}
+function mdayCard(ds){const items=mathAll.filter(x=>x.date===ds),done=items.filter(x=>S.mathDone[x.id]).length,late=ds<TODAY()&&items.some(x=>!S.mathDone[x.id]);
+ return`<section class="day ${ds===TODAY()?'today':''}"><header><button class="dayname" data-act="gotoDay" data-date="${ds}"><b>${DOW[dowOf(ds)]}</b><span>${short(ds)}</span></button>${late?'<span class="badge" style="background:var(--late);color:var(--chk)">⚠️ Missing</span>':''}${items.length?`<span class="cnt">${done}/${items.length}</span>`:''}</header>
+  ${items.length?bar(Math.round(done/items.length*100),'var(--math)'):''}<div class="tasks">${items.map(mathRow).join('')||'<p class="muted small">No math.</p>'}</div></section>`}
+function viewMWeek(){const ws=weekStart(ui.date);
+ return`${mweekNav()}${mBanner()}${mathWeekGoals(ws)}<div class="days">${[0,1,2,3,4].map(i=>mdayCard(addDays(ws,i))).join('')}</div>`}
+
+function viewMMonth(){const[y,m]=ui.month.split('-').map(Number),first=iso(new Date(y,m-1,1)),last=iso(new Date(y,m,0)),t=TODAY();let ws=weekStart(first),html='';
+ while(ws<=last){const wi=mathWeekInfo(ws);
+  html+=`<div class="wkcap"><span>${wi?'Math week '+wi.num+' · Lessons '+wi.first+'–'+wi.last:'No math planned'}</span></div><div class="mrow">`;
+  for(let i=0;i<7;i++){const d=addDays(ws,i),it=mathAll.filter(x=>x.date===d),dn=it.filter(x=>S.mathDone[x.id]).length,inM=d.slice(0,7)===ui.month,late=d<t&&dn<it.length;
+   html+=`<button class="cell ${inM?'':'out'} ${d===t?'today':''} ${late?'late':''} ${it.length&&dn===it.length?'full':''}" data-act="gotoDay" data-date="${d}" aria-label="${longDate(d)}, ${dn} of ${it.length} done"><span class="d"><span>${parse(d).getDate()}</span></span>${it.length?`<span class="ct">${dn}/${it.length}</span>${bar(Math.round(dn/it.length*100),'var(--math)')}<span class="st small muted">${late?'Missing math':it.some(x=>x.kind==='test')?'📝 Test':''}</span>`:''}</button>`}
+  html+='</div>';ws=addDays(ws,7)}
+ return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevMonth">‹ Prev</button><div class="ttl">${MON[m-1]} ${y}</div><button class="btn ghost sm" data-act="nextMonth">Next ›</button></div>
+ <div class="row noprint between"><span class="hint">Tap a day to open its math list. Print with Ctrl+P (Cmd+P).</span><button class="btn ghost sm" data-act="thisMonth">This month</button></div>
+ <div class="card"><div class="mhead">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div>${d}</div>`).join('')}</div>${html}</div>`}
+
+function viewMPlan(){const st=mathStatus(),pr=mathProgress(),t=TODAY(),thisWs=weekStart(t);
+ const units=MATH_UNITS.map(([u,a,b])=>{let d=0;for(let n=a;n<=b;n++)if(mathDoneN(n))d++;const tot=b-a+1,test=u===1||S.mathDone['mt'+u];
+  return`<div class="goal ${d===tot&&test?'ok':''}" style="--c:var(--math)"><b>Unit ${u} · Lessons ${a}–${b} · Test ${test?'✅':'⬜'}</b><span class="n">${d}/${tot}</span>${bar(Math.round(d/tot*100),'var(--math)')}</div>`}).join('');
+ const weeks=MATH_WEEKS.map((items,k)=>{const w=addDays(MATH_START,7*k),wi=mathWeekInfo(w),dn=items.filter(x=>S.mathDone[x.id]).length,late=items.filter(x=>x.date<t&&!S.mathDone[x.id]);
+  const s=dn===items.length?['✅','Done','done']:late.length?['⚠️','Behind: '+late.length,'late']:w===thisWs?['📚','This week','now']:['🗓️','Coming up','soon'];
+  return`<button class="rpc ${s[2]} ${w===weekStart(ui.date)?'sel':''}" style="text-align:left;font:inherit;color:inherit" data-act="mgoto" data-date="${w}"><div class="em">${s[0]}</div><b>Week ${k+1}</b><div class="rch">Lessons ${wi.first}–${wi.last}</div><div class="small muted">${short(w)} – ${short(addDays(w,4))}${items.some(x=>x.kind==='test')?' · 📝 Test':''}</div><div class="small st">${s[1]}</div>${bar(Math.round(dn/items.length*100),'var(--math)')}</button>`}).join('');
+ return`${mBanner()}
+ <div class="card" style="border-color:var(--math)"><h2>Math 7 progress</h2>${goalRow('Lessons done (1–94)',pr.done,pr.total,'var(--math)')}
+  <p class="small">Lessons 1–18 are already done. ${st.remL} lessons left. Planned finish: <b>${longDate(st.last)}</b>. Course deadline: <b>Jun 30, 2027</b> (${st.buffer} weeks of extra time for holidays and catch-up).</p></div>
+ <div class="card"><h2>Units</h2><div class="tasks">${units}</div></div>
+ <div class="card"><h2>Weekly schedule</h2><p class="hint">4–6 lessons a week, fewer on harder units. Tap a week to open it.</p><div class="rpg">${weeks}</div></div>`}
+
+const MTABS=[['today','Today'],['week','Week'],['month','Month'],['plan','Plan']];
+const MVIEWS={today:viewMToday,week:viewMWeek,month:viewMMonth,plan:viewMPlan};
+
+function renderHome(){
+ document.getElementById('nameLine').textContent=(S.name||'My')+(S.name?"'s":'');
+ ['weekbadge','hero','tabs'].forEach(i=>document.getElementById(i).hidden=true);
+ document.getElementById('top').classList.add('center');
+ const ms=mathStatus(),es=elaStatus();
+ document.getElementById('view').innerHTML=`<div class="home"><p class="lead">Which planner do you want to open?</p><div class="choices">
+  <button class="choice ela" data-act="app" data-app="ela"><span class="cn">ELA</span><span class="cd">English Language Arts</span><span class="cs">${es.short}</span></button>
+  <button class="choice math" data-act="app" data-app="math"><span class="cn">Math</span><span class="cd">Lessons and unit tests</span><span class="cs">${ms.short}</span></button></div></div>`;
+ setStatus()}
+function renderMath(){
+ document.getElementById('nameLine').textContent=(S.name||'My')+(S.name?"'s":'');
+ ['weekbadge','hero','tabs'].forEach(i=>document.getElementById(i).hidden=false);
+ document.getElementById('top').classList.remove('center');
+ const ws=weekStart(TODAY()),wi=mathWeekInfo(ws);
+ document.getElementById('weekbadge').innerHTML=`<span class="k">Math · this week</span><span class="d">${short(ws)} – ${short(addDays(ws,6))}</span><span class="l">${wi?`<span class="p">Week ${wi.num}</span><span class="p">Lessons ${wi.first}–${wi.last}</span>`:'<span class="p">No math planned</span>'}</span>`;
+ const wit=wi?wi.items:[],wd=wit.filter(x=>S.mathDone[x.id]).length,wp=wit.length?Math.round(wd/wit.length*100):0;
+ const wm=!wit.length?'No math this week.':wp===100?'Perfect week! You finished all your math!':wp>=80?'Almost there! Finish strong!':wp>=40?'More than halfway. Keep it up!':wp>0?'Great start. One lesson at a time!':'Fresh week! Begin with one lesson.';
+ document.getElementById('hero').innerHTML=`<span class="lab">Weekly progress</span>${bar(wp,'var(--math)')}<span class="pct">${wp}%</span><div class="msg">${wm}</div>`;
+ document.getElementById('tabs').innerHTML=`<button class="tab" data-act="home">🏠 Home</button>`+MTABS.map(([k,l])=>`<button class="tab" data-act="tab" data-tab="${k}" ${ui.tab===k?'aria-current="page"':''}>${l}</button>`).join('');
+ document.getElementById('view').innerHTML=(MVIEWS[ui.tab]||viewMToday)();
+ setStatus()}
+
+/* ================= ELA status + plan (same look as Math) ================= */
+function elaStatus(){const items=overdue().flatMap(x=>x.tasks),n=t=>items.filter(x=>x.type===t).length;
+ const parts=[[n('cie'),'lesson','lessons'],[n('read'),'reading chapter','reading chapters'],[n('summary'),'summary','summaries'],[items.filter(x=>x.custom).length,'extra task','extra tasks']].filter(p=>p[0]>0).map(p=>p[0]+' '+(p[0]===1?p[1]:p[2]));
+ const what=parts.length>1?parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1]:parts[0]||'';
+ let level='ok',msg='🎉 You are on schedule. Keep it up!',short='✅ On schedule';
+ if(items.length&&items.length<=2){level='warn';msg='⚠️ You are behind by '+what+'. Finish the missing work first, then keep going.';short='⚠️ '+what+' behind'}
+ else if(items.length){level='bad';msg='🚨 You are behind by '+what+'. Do a little extra each day until you catch up, and bring your questions to the tutoring session.';short='🚨 '+what+' behind'}
+ return{items,level,msg,short,pace:''}}
+function elaProgress(){let tot=0,done=0;
+ PACE.forEach((_,k)=>{const ws=addDays(weekStart(S.cycleStart),7*k);for(let i=0;i<5;i++){const d=addDays(ws,i);planFor(d).filter(t=>t.type==='cie').forEach(t=>{tot++;if(isDone(d,t.id))done++})}});
+ const lessons=PACE.reduce((a,b)=>a+b,0);
+ return{done,total:tot||lessons,pct:tot?Math.round(done/tot*100):0}}
+function viewPlan(){const st=elaStatus(),pr=elaProgress(),t=TODAY(),thisWs=weekStart(t),eb=bookById('ember'),rd=eb?readSet(eb).size:0,rt=eb&&eb.total?eb.total:19;
+ const spN=Object.keys(S.spellDone).filter(k=>S.spellDone[k]).length,cuN=Array.from({length:32},(_,i)=>i+1).filter(cursiveComplete).length;
+ const weeks=PACE.map((_,k)=>{const w=addDays(weekStart(S.cycleStart),7*k),lw=lessonWeek(w),rp=readPlan(w);let tot=0,dn=0,late=0;
+  for(let i=0;i<5;i++){const d=addDays(w,i);planFor(d).filter(x=>overdueEligible(x)).forEach(x=>{tot++;if(isDone(d,x.id))dn++;else if(d<t&&d>=S.trackFrom)late++})}
+  const s=late?['⚠️','Behind: '+late,'late']:(tot&&dn===tot)?['✅','Done','done']:w===thisWs?['📚','This week','now']:['🗓️','Coming up','soon'];
+  return`<button class="rpc ${s[2]} ${w===weekStart(ui.date)?'sel':''}" style="text-align:left;font:inherit;color:inherit" data-act="mgoto" data-date="${w}"><div class="em">${s[0]}</div><b>Week ${k+1}</b><div class="rch">Lessons ${lw.first}–${lw.last}</div><div class="small muted">${short(w)} – ${short(addDays(w,4))}${rp?' · '+chRange(rp).replace('chapters','Ch.').replace('chapter','Ch.'):''}</div><div class="small st">${s[1]}</div>${bar(tot?Math.round(dn/tot*100):0,'var(--cie)')}</button>`}).join('');
+ return`${banner(st)}
+ <div class="card" style="border-color:var(--cie)"><h2>ELA progress</h2>
+  ${goalRow('CIE lessons done (1–'+pr.total+')',pr.done,pr.total,'var(--cie)')}${goalRow('City of Ember chapters',Math.min(rd,rt),rt,'var(--read)')}
+  ${goalRow('Spelling weeks done',spN,32,'var(--spell)')}${goalRow('Cursive weeks done',cuN,29,'var(--cursive)')}
+  <p class="small">Lessons 1–${pr.total} are planned so far. More lessons will be added later. Course deadline: <b>Jun 30, 2027</b>.</p></div>
+ <div class="card"><h2>Weekly schedule</h2><p class="hint">Lessons, reading and the weekly summary. Tap a week to open it.</p><div class="rpg">${weeks}</div></div>`}
+
+const TABS=[['today','Today'],['week','Week'],['month','Month'],['plan','Plan'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive']];
+const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,plan:viewPlan,reading:viewReading,spelling:viewSpelling,cursive:viewCursive};
+
+function render(){if(ui.app==='home')return renderHome();if(ui.app==='math')return renderMath();renderEla()}
+function renderEla(){
+ ['weekbadge','hero','tabs'].forEach(i=>document.getElementById(i).hidden=false);
+ document.getElementById('top').classList.remove('center');
  document.getElementById('nameLine').textContent=(S.name||'My')+(S.name?"'s":'');
  const ws=weekStart(TODAY()),st=weekStats(ws),wi=weekInfo(ws);
  const m=st.pct===100?'Perfect week! You finished everything!':st.pct>=80?'Almost there! Finish strong!':st.pct>=40?'More than halfway. Keep it up!':st.pct>0?'Great start. One task at a time!':'Fresh week! Begin with one lesson.';
  document.getElementById('weekbadge').innerHTML=`<span class="k">This week</span><span class="d">${short(ws)} – ${short(addDays(ws,6))}</span><span class="l"><span class="p">Week ${wi.num}</span>${lessonWeek(ws)?`<span class="p">Lessons ${lessonWeek(ws).first}–${lessonWeek(ws).last}</span>`:''}</span>`;
  document.getElementById('hero').innerHTML=`<span class="lab">Weekly progress</span>${bar(st.pct)}<span class="pct">${st.pct}%</span><div class="msg">${m}</div>`;
- document.getElementById('tabs').innerHTML=TABS.map(([k,l])=>`<button class="tab" data-act="tab" data-tab="${k}" ${ui.tab===k?'aria-current="page"':''}>${l}</button>`).join('');
+ document.getElementById('tabs').innerHTML=`<button class="tab" data-act="home">🏠 Home</button>`+TABS.map(([k,l])=>`<button class="tab" data-act="tab" data-tab="${k}" ${ui.tab===k?'aria-current="page"':''}>${l}</button>`).join('');
  document.getElementById('view').innerHTML=VIEWS[ui.tab]();
  setStatus()}
 
@@ -714,6 +960,9 @@ function toggleTask(ds,id,on){const key=ds+'|'+id,t=tasksFor(ds).find(x=>x.id===
   else if(t&&t.type==='read')toast('Chapter logged in your reading tracker');}}
 
 const A={
+ app:e=>{ui.app=e.dataset.app;ui.tab='today';ui.date=TODAY();render();window.scrollTo(0,0)},
+ home:()=>{ui.app='home';render();window.scrollTo(0,0)},
+ mgoto:e=>{ui.date=e.dataset.date;ui.tab='week';render();window.scrollTo(0,0)},
  curWeek:e=>{ui.curWeek=+e.dataset.n;render();window.scrollTo(0,0)},
  openCursive:e=>{ui.curWeek=+e.dataset.n;ui.tab='cursive';render();window.scrollTo(0,0)},
  tab:e=>{ui.tab=e.dataset.tab;render();window.scrollTo(0,0)},
@@ -739,6 +988,7 @@ function shiftMonth(n){const[y,m]=ui.month.split('-').map(Number),d=new Date(y,m
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='INPUT')return;const f=A[el.dataset.act];if(f)f(el)});
 document.addEventListener('change',e=>{const el=e.target;
  if(el.dataset.act==='toggle'){toggleTask(el.dataset.date,el.dataset.id,el.checked);return}
+ if(el.dataset.act==='mtoggle'){if(el.checked)S.mathDone[el.dataset.id]=TODAY();else delete S.mathDone[el.dataset.id];save();render();if(el.checked){const st=mathStatus();toast(st.level==='ok'||st.level==='done'?'Lesson done. Great job!':'Nice! Keep catching up.')}return}
  if(el.dataset.act==='curItem'){const n=el.dataset.n,it=S.cursiveItems[n]||(S.cursiveItems[n]={});if(el.checked)it[el.dataset.k]=true;else delete it[el.dataset.k];save();render();
   if(el.checked)toast(el.dataset.k==='photo'?'Thank you! Dani will love to see it.':cursiveComplete(+n)?'Week complete! Beautiful cursive!':'Nice writing!');return}
  if(el.dataset.act==='listCheck'){const st=el.dataset.kind==='spell'?S.spellDone:S.cursiveDone;if(el.checked)st[el.dataset.n]=true;else delete st[el.dataset.n];save();render();if(el.checked)toast(el.dataset.kind==='spell'?'Spelling list done. Great job!':'Cursive practice done. Beautiful!');return}
