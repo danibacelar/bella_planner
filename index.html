@@ -565,7 +565,7 @@ const bookById=id=>S.books.find(b=>b.id===id);
 const readSet=b=>new Set(S.readingLog.filter(e=>e.bookId===b.id).map(e=>e.chapter));
 function nextChapter(b){const r=readSet(b);for(let n=1;n<=(b.total||999);n++)if(!r.has(n))return n;return null}
 function nextTutorDay(from){for(let i=0;i<8;i++){const d=addDays(from,i);if(isTutor(d))return d}return from}
-function overdue(){const out=[];const t=TODAY();let start=addDays(t,-14);if(S.trackFrom>start)start=S.trackFrom;
+function overdue(){const out=[];const t=TODAY();const start=S.trackFrom;
  for(let d=start;d<t;d=addDays(d,1)){const ts=tasksFor(d).filter(x=>(overdueEligible(x)||x.custom)&&!isDone(d,x.id));if(ts.length)out.push({date:d,tasks:ts})}return out}
 function streak(){const days=new Set(Object.keys(S.done).filter(k=>S.done[k]).map(k=>k.split('|')[0]));let d=TODAY(),n=0;if(!days.has(d))d=addDays(d,-1);while(days.has(d)){n++;d=addDays(d,-1)}return n}
 function sp(ws){return S.spelling[ws]||(S.spelling[ws]={words:[],quiz:null,notes:''})}
@@ -619,7 +619,7 @@ function viewToday(){const ds=ui.date,tut=isTutor(ds),st=dayStats(ds),wi=weekInf
  const msg=st.total===0?'No assignments today. Enjoy your free day!':st.total&&st.done===st.total?'Everything is done for today. Awesome work!':st.done?'Nice! Keep going, you are doing great.':'Pick one thing and get started.';
  return`<div class="nav noprint"><button class="btn ghost sm" data-act="prevDay">‹ Yesterday</button><div class="ttl">${longDate(ds)}${ds===TODAY()?' <span class="badge today">Today</span>':''}</div><button class="btn ghost sm" data-act="nextDay">Tomorrow ›</button></div>
  ${ds!==TODAY()?'<div class="row noprint" style="justify-content:center"><button class="btn sm" data-act="today">Jump to today</button></div>':''}
- ${ds===TODAY()||ds>TODAY()?'':''}
+ ${banner(elaStatus())}
  <div class="grid2">
   <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
    <div class="card" style="${tut?'border-color:var(--tutor)':''}">
@@ -638,6 +638,7 @@ function viewToday(){const ds=ui.date,tut=isTutor(ds),st=dayStats(ds),wi=weekInf
 
 function viewWeek(){const ws=weekStart(ui.date),wi=weekInfo(ws);
  return`${weekNav()}
+ ${banner(elaStatus())}
  <div class="row noprint between"><span class="hint">To print this page, press Ctrl+P (Cmd+P on a Mac), or save a clean copy.</span><button class="btn sm" data-act="savePrintWeek">Save printable week</button></div>
  ${weekGoalsHTML(ws)}
  <div class="days">${[0,1,2,3,4,5,6].map(i=>dayCard(addDays(ws,i))).join('')}</div>`}
@@ -830,7 +831,8 @@ function mathStatus(){const t=TODAY(),b=mathAll.filter(x=>x.date<t&&!S.mathDone[
 function mathProgress(){const lessonsDone=Array.from({length:94},(_,i)=>i+1).filter(mathDoneN).length;return{done:lessonsDone,total:94,pct:Math.round(lessonsDone/94*100)}}
 function mathRow(it){const d=!!S.mathDone[it.id];
  return`<div class="tw"><label class="task ${it.kind==='test'?'t-summary':'t-math'} ${d?'done':''}"><input type="checkbox" data-act="mtoggle" data-id="${it.id}" ${d?'checked':''}><span class="box"></span><span class="lbl">${it.kind==='test'?'📝 ':''}${esc(it.label)}</span></label></div>`}
-const mBanner=()=>{const st=mathStatus();return`<div class="mbanner ${st.level}">${st.msg}${st.pace?`<div style="margin-top:4px">${st.pace}</div>`:''}</div>`};
+const banner=st=>`<div class="mbanner ${st.level}">${st.msg}${st.pace?`<div style="margin-top:4px">${st.pace}</div>`:''}</div>`;
+const mBanner=()=>banner(mathStatus());
 function mathMissing(){const st=mathStatus();if(!st.b.length)return'';
  const days=[...new Set(st.b.map(x=>x.date))];
  return`<div class="card od"><h2>Missing math (${st.b.length})</h2><p class="small">These were planned for earlier days. Do them first.</p>${days.map(d=>`<div><div class="small muted" style="font-weight:800;margin-bottom:4px">Planned for ${longDate(d)}</div><div class="tasks">${st.b.filter(x=>x.date===d).map(mathRow).join('')}</div></div>`).join('')}</div>`}
@@ -856,7 +858,7 @@ function mdayCard(ds){const items=mathAll.filter(x=>x.date===ds),done=items.filt
  return`<section class="day ${ds===TODAY()?'today':''}"><header><button class="dayname" data-act="gotoDay" data-date="${ds}"><b>${DOW[dowOf(ds)]}</b><span>${short(ds)}</span></button>${late?'<span class="badge" style="background:var(--late);color:var(--chk)">⚠️ Missing</span>':''}${items.length?`<span class="cnt">${done}/${items.length}</span>`:''}</header>
   ${items.length?bar(Math.round(done/items.length*100),'var(--math)'):''}<div class="tasks">${items.map(mathRow).join('')||'<p class="muted small">No math.</p>'}</div></section>`}
 function viewMWeek(){const ws=weekStart(ui.date);
- return`${mweekNav()}${mathWeekGoals(ws)}<div class="days">${[0,1,2,3,4].map(i=>mdayCard(addDays(ws,i))).join('')}</div>`}
+ return`${mweekNav()}${mBanner()}${mathWeekGoals(ws)}<div class="days">${[0,1,2,3,4].map(i=>mdayCard(addDays(ws,i))).join('')}</div>`}
 
 function viewMMonth(){const[y,m]=ui.month.split('-').map(Number),first=iso(new Date(y,m-1,1)),last=iso(new Date(y,m,0)),t=TODAY();let ws=weekStart(first),html='';
  while(ws<=last){const wi=mathWeekInfo(ws);
@@ -887,9 +889,9 @@ function renderHome(){
  document.getElementById('nameLine').textContent=(S.name||'My')+(S.name?"'s":'');
  ['weekbadge','hero','tabs'].forEach(i=>document.getElementById(i).hidden=true);
  document.getElementById('top').classList.add('center');
- const ms=mathStatus(),om=overdue().reduce((a,x)=>a+x.tasks.length,0);
+ const ms=mathStatus(),es=elaStatus();
  document.getElementById('view').innerHTML=`<div class="home"><p class="lead">Which planner do you want to open?</p><div class="choices">
-  <button class="choice ela" data-act="app" data-app="ela"><span class="cn">ELA</span><span class="cd">English Language Arts</span><span class="cs">${om?`⚠️ ${om} missing task${om===1?'':'s'}`:'✅ All caught up'}</span></button>
+  <button class="choice ela" data-act="app" data-app="ela"><span class="cn">ELA</span><span class="cd">English Language Arts</span><span class="cs">${es.short}</span></button>
   <button class="choice math" data-act="app" data-app="math"><span class="cn">Math</span><span class="cd">Lessons and unit tests</span><span class="cs">${ms.short}</span></button></div></div>`;
  setStatus()}
 function renderMath(){
@@ -898,14 +900,40 @@ function renderMath(){
  document.getElementById('top').classList.remove('center');
  const ws=weekStart(TODAY()),wi=mathWeekInfo(ws);
  document.getElementById('weekbadge').innerHTML=`<span class="k">Math · this week</span><span class="d">${short(ws)} – ${short(addDays(ws,6))}</span><span class="l">${wi?`<span class="p">Week ${wi.num}</span><span class="p">Lessons ${wi.first}–${wi.last}</span>`:'<span class="p">No math planned</span>'}</span>`;
- const pr=mathProgress();
- document.getElementById('hero').innerHTML=`<span class="lab">Math 7 progress</span>${bar(pr.pct,'var(--math)')}<span class="pct">${pr.pct}%</span><div class="msg">${pr.done} of ${pr.total} lessons done</div>`;
+ const wit=wi?wi.items:[],wd=wit.filter(x=>S.mathDone[x.id]).length,wp=wit.length?Math.round(wd/wit.length*100):0;
+ const wm=!wit.length?'No math this week.':wp===100?'Perfect week! You finished all your math!':wp>=80?'Almost there! Finish strong!':wp>=40?'More than halfway. Keep it up!':wp>0?'Great start. One lesson at a time!':'Fresh week! Begin with one lesson.';
+ document.getElementById('hero').innerHTML=`<span class="lab">Weekly progress</span>${bar(wp,'var(--math)')}<span class="pct">${wp}%</span><div class="msg">${wm}</div>`;
  document.getElementById('tabs').innerHTML=`<button class="tab" data-act="home">🏠 Home</button>`+MTABS.map(([k,l])=>`<button class="tab" data-act="tab" data-tab="${k}" ${ui.tab===k?'aria-current="page"':''}>${l}</button>`).join('');
  document.getElementById('view').innerHTML=(MVIEWS[ui.tab]||viewMToday)();
  setStatus()}
 
-const TABS=[['today','Today'],['week','Week'],['month','Month'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive']];
-const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,reading:viewReading,spelling:viewSpelling,cursive:viewCursive};
+/* ================= ELA status + plan (same look as Math) ================= */
+function elaStatus(){const items=overdue().flatMap(x=>x.tasks),n=t=>items.filter(x=>x.type===t).length;
+ const parts=[[n('cie'),'lesson','lessons'],[n('read'),'reading chapter','reading chapters'],[n('summary'),'summary','summaries'],[items.filter(x=>x.custom).length,'extra task','extra tasks']].filter(p=>p[0]>0).map(p=>p[0]+' '+(p[0]===1?p[1]:p[2]));
+ const what=parts.length>1?parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1]:parts[0]||'';
+ let level='ok',msg='🎉 You are on schedule. Keep it up!',short='✅ On schedule';
+ if(items.length&&items.length<=2){level='warn';msg='⚠️ You are behind by '+what+'. Finish the missing work first, then keep going.';short='⚠️ '+what+' behind'}
+ else if(items.length){level='bad';msg='🚨 You are behind by '+what+'. Do a little extra each day until you catch up, and bring your questions to the tutoring session.';short='🚨 '+what+' behind'}
+ return{items,level,msg,short,pace:''}}
+function elaProgress(){let tot=0,done=0;
+ PACE.forEach((_,k)=>{const ws=addDays(weekStart(S.cycleStart),7*k);for(let i=0;i<5;i++){const d=addDays(ws,i);planFor(d).filter(t=>t.type==='cie').forEach(t=>{tot++;if(isDone(d,t.id))done++})}});
+ const lessons=PACE.reduce((a,b)=>a+b,0);
+ return{done,total:tot||lessons,pct:tot?Math.round(done/tot*100):0}}
+function viewPlan(){const st=elaStatus(),pr=elaProgress(),t=TODAY(),thisWs=weekStart(t),eb=bookById('ember'),rd=eb?readSet(eb).size:0,rt=eb&&eb.total?eb.total:19;
+ const spN=Object.keys(S.spellDone).filter(k=>S.spellDone[k]).length,cuN=Array.from({length:32},(_,i)=>i+1).filter(cursiveComplete).length;
+ const weeks=PACE.map((_,k)=>{const w=addDays(weekStart(S.cycleStart),7*k),lw=lessonWeek(w),rp=readPlan(w);let tot=0,dn=0,late=0;
+  for(let i=0;i<5;i++){const d=addDays(w,i);planFor(d).filter(x=>overdueEligible(x)).forEach(x=>{tot++;if(isDone(d,x.id))dn++;else if(d<t&&d>=S.trackFrom)late++})}
+  const s=late?['⚠️','Behind: '+late,'late']:(tot&&dn===tot)?['✅','Done','done']:w===thisWs?['📚','This week','now']:['🗓️','Coming up','soon'];
+  return`<button class="rpc ${s[2]} ${w===weekStart(ui.date)?'sel':''}" style="text-align:left;font:inherit;color:inherit" data-act="mgoto" data-date="${w}"><div class="em">${s[0]}</div><b>Week ${k+1}</b><div class="rch">Lessons ${lw.first}–${lw.last}</div><div class="small muted">${short(w)} – ${short(addDays(w,4))}${rp?' · '+chRange(rp).replace('chapters','Ch.').replace('chapter','Ch.'):''}</div><div class="small st">${s[1]}</div>${bar(tot?Math.round(dn/tot*100):0,'var(--cie)')}</button>`}).join('');
+ return`${banner(st)}
+ <div class="card" style="border-color:var(--cie)"><h2>ELA progress</h2>
+  ${goalRow('CIE lessons done (1–'+pr.total+')',pr.done,pr.total,'var(--cie)')}${goalRow('City of Ember chapters',Math.min(rd,rt),rt,'var(--read)')}
+  ${goalRow('Spelling weeks done',spN,32,'var(--spell)')}${goalRow('Cursive weeks done',cuN,29,'var(--cursive)')}
+  <p class="small">Lessons 1–${pr.total} are planned so far. More lessons will be added later. Course deadline: <b>Jun 30, 2027</b>.</p></div>
+ <div class="card"><h2>Weekly schedule</h2><p class="hint">Lessons, reading and the weekly summary. Tap a week to open it.</p><div class="rpg">${weeks}</div></div>`}
+
+const TABS=[['today','Today'],['week','Week'],['month','Month'],['plan','Plan'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive']];
+const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,plan:viewPlan,reading:viewReading,spelling:viewSpelling,cursive:viewCursive};
 
 function render(){if(ui.app==='home')return renderHome();if(ui.app==='math')return renderMath();renderEla()}
 function renderEla(){
