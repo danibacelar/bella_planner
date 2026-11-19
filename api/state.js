@@ -50,7 +50,8 @@ module.exports = async (req, res) => {
       JSON.parse(body.json);
       const raw = await redis(['GET', KEY]);
       const cur = raw ? JSON.parse(raw) : null;
-      if (cur && cur.updated > body.updated) return send(409, { error: 'stale', state: cur });
+      const base = Number.isFinite(body.base) ? body.base : body.updated;
+      if (cur && cur.updated > base) return send(409, { error: 'stale', state: cur });
       await redis(['SET', KEY, JSON.stringify({ updated: body.updated, json: body.json })]);
       return send(200, { ok: true });
     }
