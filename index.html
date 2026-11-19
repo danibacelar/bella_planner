@@ -1032,31 +1032,33 @@ async function savePrint(kind){let html,name;
 
 /* ---------- Vercel sync: Isabella writes, her parents only view ---------- */
 const CODE_KEY='isabella-planner-code';
-const net={mode:window.claude?'claude':'loading',code:'',err:'',timer:null,poll:null,busy:false,again:false,state:'off'};
+const net={mode:window.claude?'claude':'loading',code:'',err:'',timer:null,poll:null,busy:false,again:false,state:'off',base:0};
 const NAV=new Set(['tab','prevDay','nextDay','today','prevWeek','nextWeek','thisWeek','prevMonth','nextMonth','thisMonth','gotoDay','app','home','mgoto','curWeek','openCursive','login','logout']);
 function isTeacher(){return net.mode==='teacher'}
 async function api(method,body){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),10000);
  try{return await fetch('/api/state',{method,headers:{'content-type':'application/json','x-code':net.code},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:ctl.signal})}finally{clearTimeout(t)}}
-function adopt(r){S=fixBooks(Object.assign(defaultState(),JSON.parse(r.json)));if(!isTeacher())persistLocal()}
+function adopt(r){S=fixBooks(Object.assign(defaultState(),JSON.parse(r.json)));net.base=r.updated||0;if(!isTeacher())persistLocal()}
 async function tryAuth(code){net.code=code||'';let r;
  try{r=await api('GET')}catch(e){net.mode='local';return render()}
  if(r.status===401){net.mode='login';net.err=code?'That code did not work. Try again.':'';return render()}
  if(!r.ok){net.mode='local';return render()}
  let j;try{j=await r.json()}catch(e){net.mode='local';return render()}
  try{localStorage.setItem(CODE_KEY,net.code)}catch(e){}
- net.mode=j.role;net.err='';const has=j.state&&j.state.json;
- if(isTeacher()){S=has?(adopt(j.state),S):defaultState();net.state='synced';clearInterval(net.poll);net.poll=setInterval(refresh,30000)}
+ net.mode=j.role;net.err='';const has=j.state&&j.state.json;net.base=has?(j.state.updated||0):0;
+ clearInterval(net.poll);net.poll=setInterval(refresh,30000);
+ if(isTeacher()){S=has?(adopt(j.state),S):defaultState();net.state='synced'}
  else if(has&&(j.state.updated||0)>(S.updated||0))adopt(j.state);
  else if(S.updated>0)pushServer();
  if(!isTeacher())net.state='synced';
  render()}
 async function pushServer(){if(net.mode!=='student')return;if(net.busy){net.again=true;return}net.busy=true;
- try{const r=await api('PUT',{updated:S.updated,json:JSON.stringify(S)});
-  if(r.status===409){const j=await r.json();if(j.state&&j.state.json){adopt(j.state);render()}net.state='synced'}
-  else net.state=r.ok?'synced':'fail'}catch(e){net.state='fail'}
+ try{const sent=S.updated,r=await api('PUT',{updated:sent,base:net.base,json:JSON.stringify(S)});
+  if(r.status===409){const j=await r.json();if(j.state&&j.state.json){adopt(j.state);render();toast('Your planner was updated from another device')}net.state='synced'}
+  else{net.state=r.ok?'synced':'fail';if(r.ok)net.base=sent}}catch(e){net.state='fail'}
  net.busy=false;setStatus();if(net.again){net.again=false;pushServer()}}
 async function refresh(){if(net.mode!=='teacher'&&net.mode!=='student')return;
- try{const r=await api('GET');if(!r.ok)return;const j=await r.json();if(j.state&&j.state.json&&(j.state.updated||0)>(S.updated||0)){adopt(j.state);render()}}catch(e){}}
+ const a=document.activeElement;if(!isTeacher()&&a&&((a.tagName==='INPUT'&&a.type!=='checkbox')||a.tagName==='TEXTAREA')&&a.value)return;
+ try{const r=await api('GET');if(!r.ok)return;const j=await r.json();if(j.state&&j.state.json&&(j.state.updated||0)>(S.updated||0)){adopt(j.state);render();if(!isTeacher())setStatus()}}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 
 render();initCloud();
