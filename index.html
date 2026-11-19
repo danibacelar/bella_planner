@@ -1,4 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<meta name="robots" content="noindex">
 <title>Isabella's Study Planner</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap">
@@ -194,6 +195,11 @@ button.task{width:100%;text-align:left;font:inherit;color:inherit}
 .task.on .box{background:var(--c)}.task.on .box::after{content:"";width:7px;height:13px;border:solid var(--chk);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
 .task.photo{--c:var(--tutor);--chk:#2a2150}
 .lists .task .lbl{overflow-wrap:anywhere}
+.rolebanner{background:var(--tutor);color:#2a2150;border-radius:14px;padding:8px 14px;font-weight:800;text-align:center}
+body.readonly label.task{pointer-events:none}
+body.readonly input:not([type=checkbox]),body.readonly textarea,body.readonly select{pointer-events:none}
+.readonly .editonly{display:none}
+.homefoot{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
 .home{display:flex;flex-direction:column;align-items:center;gap:22px;padding:14px 0 30px;text-align:center}
 .home .lead{font-family:var(--display);font-size:1.5rem}
 .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:20px;width:100%;max-width:780px}
@@ -227,6 +233,7 @@ button.task{width:100%;text-align:left;font:inherit;color:inherit}
     <div class="weekbadge" id="weekbadge"></div>
   </div>
   <section class="hero" id="hero"></section>
+  <div class="rolebanner noprint" id="rolebanner" hidden></div>
   <nav class="tabs noprint" id="tabs" aria-label="Planner sections"></nav>
   <main id="view" class="wrap" style="padding:0"></main>
 </div>
@@ -303,12 +310,14 @@ try{const raw=localStorage.getItem(LS_KEY);if(raw)S=fixBooks(Object.assign(defau
 let local_ok=true,cloud={ref:null,state:'off',busy:false,again:false,timer:null};
 
 function persistLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(S));local_ok=true}catch(e){local_ok=false}}
-function save(){S.updated=Date.now();persistLocal();setStatus();clearTimeout(cloud.timer);if(cloud.ref)cloud.timer=setTimeout(push,1200)}
+function save(){if(isTeacher())return;S.updated=Date.now();persistLocal();setStatus();clearTimeout(cloud.timer);if(cloud.ref)cloud.timer=setTimeout(push,1200);if(net.mode==='student'){clearTimeout(net.timer);net.timer=setTimeout(pushServer,1200)}}
 function setStatus(){const el=document.getElementById('savestat');if(!el)return;
+ if(isTeacher()){el.className='status noprint';el.innerHTML='<i></i><span>👀 View only · '+(S.updated?'last change '+new Date(S.updated).toLocaleString([],{dateStyle:'medium',timeStyle:'short'}):'no entries yet')+'</span>';return}
  let txt='Saved on this device',warn=false;
- if(!local_ok&&cloud.state!=='synced'){txt='Not saved: browser storage is off';warn=true}
+ if(!local_ok&&cloud.state!=='synced'&&net.state!=='synced'){txt='Not saved: browser storage is off';warn=true}
+ else if(net.mode==='student'&&net.state==='synced')txt='Saved and synced (your parents can see it)';
  else if(cloud.state==='synced')txt='Saved and synced to your account';
- else if(cloud.state==='fail'){txt='Saved on this device (sync paused)';}
+ else if(cloud.state==='fail'||net.state==='fail'){txt='Saved on this device (sync paused)';}
  el.className='status noprint'+(warn?' warn':'');el.innerHTML='<i></i><span>'+txt+'</span>'}
 async function push(){if(!cloud.ref)return;if(cloud.busy){cloud.again=true;return}
  cloud.busy=true;try{await cloud.ref.set({updated:S.updated,json:JSON.stringify(S)});cloud.state='synced'}catch(e){cloud.state='fail'}
@@ -625,7 +634,7 @@ function viewToday(){const ds=ui.date,tut=isTutor(ds),st=dayStats(ds),wi=weekInf
     <div class="row"><b class="n" style="font-family:var(--display)">${st.done}/${st.total}</b><div style="flex:1;min-width:120px">${bar(st.pct,tut?'var(--tutor)':'var(--brand)')}</div></div>
     <div class="tasks">${tasksFor(ds).map(t=>taskRow(ds,t)).join('')}</div>
     <p class="small" style="font-weight:800">${msg}</p>
-    <div class="row noprint"><input type="text" id="newTask" data-enter="addTask" placeholder="Add my own task (like tutor homework)" style="flex:1;min-width:180px"><button class="btn sm" data-act="addTask">Add</button></div>
+    <div class="row noprint editonly"><input type="text" id="newTask" data-enter="addTask" placeholder="Add my own task (like tutor homework)" style="flex:1;min-width:180px"><button class="btn sm" data-act="addTask">Add</button></div>
    </div>
   </div>
   <div style="display:flex;flex-direction:column;gap:16px;min-width:0">${overdueHTML()}${weekGoalsHTML(weekStart(ds))}</div>
@@ -882,6 +891,9 @@ function viewMPlan(){const st=mathStatus(),pr=mathProgress(),t=TODAY(),thisWs=we
 const MTABS=[['today','Today'],['week','Week'],['month','Month'],['plan','Plan']];
 const MVIEWS={today:viewMToday,week:viewMWeek,month:viewMMonth,plan:viewMPlan};
 
+function renderGate(html){['weekbadge','hero','tabs'].forEach(i=>document.getElementById(i).hidden=true);
+ document.getElementById('top').classList.add('center');document.getElementById('view').innerHTML='<div class="home">'+html+'</div>';setStatus()}
+function homeFoot(){const t=isTeacher();return`<div class="homefoot noprint">${t?'':'<button class="btn ghost sm" data-act="exportBackup">💾 Save a backup</button><label class="btn ghost sm" style="cursor:pointer">Restore a backup<input type="file" id="importFile" accept=".json,application/json" hidden></label>'}${(net.mode==='student'||t)?'<button class="btn ghost sm" data-act="logout">Sign out</button>':''}</div>`}
 function renderHome(){
  document.getElementById('nameLine').textContent=(S.name||'My')+(S.name?"'s":'');
  ['weekbadge','hero','tabs'].forEach(i=>document.getElementById(i).hidden=true);
@@ -889,7 +901,7 @@ function renderHome(){
  const ms=mathStatus(),es=elaStatus();
  document.getElementById('view').innerHTML=`<div class="home"><p class="lead">Which planner do you want to open?</p><div class="choices">
   <button class="choice ela" data-act="app" data-app="ela"><span class="cn">ELA</span><span class="cd">English Language Arts</span><span class="cs">${es.short}</span></button>
-  <button class="choice math" data-act="app" data-app="math"><span class="cn">Math</span><span class="cd">Lessons and unit tests</span><span class="cs">${ms.short}</span></button></div></div>`;
+  <button class="choice math" data-act="app" data-app="math"><span class="cn">Math</span><span class="cd">Lessons and unit tests</span><span class="cs">${ms.short}</span></button></div>${homeFoot()}</div>`;
  setStatus()}
 function renderMath(){
  document.getElementById('nameLine').textContent=(S.name||'My')+(S.name?"'s":'');
@@ -932,7 +944,11 @@ function viewPlan(){const st=elaStatus(),pr=elaProgress(),t=TODAY(),thisWs=weekS
 const TABS=[['today','Today'],['week','Week'],['month','Month'],['plan','Plan'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive']];
 const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,plan:viewPlan,reading:viewReading,spelling:viewSpelling,cursive:viewCursive};
 
-function render(){if(ui.app==='home')return renderHome();if(ui.app==='math')return renderMath();renderEla()}
+function render(){document.body.classList.toggle('readonly',isTeacher());
+ const rb=document.getElementById('rolebanner');rb.hidden=!isTeacher();if(isTeacher())rb.textContent="👀 View only: this is Isabella's planner. You see everything she marks, but you cannot change it.";
+ if(net.mode==='loading')return renderGate('<p class="lead">Loading your planner…</p>');
+ if(net.mode==='login')return renderGate(`<p class="lead">Enter your code</p><div class="card" style="max-width:420px;width:100%;text-align:left"><label class="f">Code<input type="password" id="codeIn" autocomplete="current-password" data-enter="login" placeholder="Type your code"></label>${net.err?`<p style="color:var(--late);font-weight:800">${esc(net.err)}</p>`:''}<button class="btn" data-act="login">Open the planner</button></div>`);
+ if(ui.app==='home')return renderHome();if(ui.app==='math')return renderMath();renderEla()}
 function renderEla(){
  ['weekbadge','hero','tabs'].forEach(i=>document.getElementById(i).hidden=false);
  document.getElementById('top').classList.remove('center');
@@ -957,6 +973,11 @@ function toggleTask(ds,id,on){const key=ds+'|'+id,t=tasksFor(ds).find(x=>x.id===
   else if(t&&t.type==='read')toast('Chapter logged in your reading tracker');}}
 
 const A={
+ login:()=>{const v=document.getElementById('codeIn').value.trim();if(v)tryAuth(v)},
+ logout:()=>{try{localStorage.removeItem(CODE_KEY)}catch(e){}location.reload()},
+ exportBackup:async()=>{const data=JSON.stringify(S,null,1);
+  try{if(window.claude&&claude.use){const d=await claude.use('downloads');if(d){await d.save({filename:'isabella-planner-backup.json',data});return}}}catch(e){if(e&&e.code==='declined')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='isabella-planner-backup.json';document.body.appendChild(a);a.click();a.remove();toast('Backup saved')},
  app:e=>{ui.app=e.dataset.app;ui.tab='today';ui.date=TODAY();render();window.scrollTo(0,0)},
  home:()=>{ui.app='home';render();window.scrollTo(0,0)},
  mgoto:e=>{ui.date=e.dataset.date;ui.tab='week';render();window.scrollTo(0,0)},
@@ -982,8 +1003,9 @@ const A={
 };
 function shiftMonth(n){const[y,m]=ui.month.split('-').map(Number),d=new Date(y,m-1+n,1);ui.month=d.getFullYear()+'-'+pad(d.getMonth()+1);render()}
 
-document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='INPUT')return;const f=A[el.dataset.act];if(f)f(el)});
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.tagName==='INPUT')return;if(isTeacher()&&!NAV.has(el.dataset.act))return;const f=A[el.dataset.act];if(f)f(el)});
 document.addEventListener('change',e=>{const el=e.target;
+ if(isTeacher()){if(el.type==='checkbox')render();return}
  if(el.dataset.act==='toggle'){toggleTask(el.dataset.date,el.dataset.id,el.checked);return}
  if(el.dataset.act==='mtoggle'){if(el.checked)S.mathDone[el.dataset.id]=TODAY();else delete S.mathDone[el.dataset.id];save();render();if(el.checked){const st=mathStatus();toast(st.level==='ok'||st.level==='done'?'Lesson done. Great job!':'Nice! Keep catching up.')}return}
  if(el.dataset.act==='curItem'){const n=el.dataset.n,it=S.cursiveItems[n]||(S.cursiveItems[n]={});if(el.checked)it[el.dataset.k]=true;else delete it[el.dataset.k];save();render();
@@ -991,10 +1013,10 @@ document.addEventListener('change',e=>{const el=e.target;
  if(el.dataset.act==='listCheck'){const st=el.dataset.kind==='spell'?S.spellDone:S.cursiveDone;if(el.checked)st[el.dataset.n]=true;else delete st[el.dataset.n];save();render();if(el.checked)toast(el.dataset.kind==='spell'?'Spelling list done. Great job!':'Cursive practice done. Beautiful!');return}
  if(el.id==='importFile'&&el.files[0]){el.files[0].text().then(t=>{try{S=fixBooks(Object.assign(defaultState(),JSON.parse(t)));save();render();toast('Backup restored')}catch(err){toast('That file is not a planner backup')}});return}
  if(el.dataset.bind&&el.dataset.re){let v=el.value;if(el.dataset.num)v=v===''?0:+v;setPath(S,el.dataset.bind,v);save();render()}});
-document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.bind||el.dataset.re)return;
+document.addEventListener('input',e=>{const el=e.target;if(isTeacher())return;if(!el.dataset||!el.dataset.bind||el.dataset.re)return;
  let v=el.value;if(el.dataset.num)v=v===''?0:+v;setPath(S,el.dataset.bind,v);save();
  if(el.dataset.count)document.getElementById(el.dataset.count).textContent=words(v)+' words'});
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.enter){e.preventDefault();A[e.target.dataset.enter]()}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.enter){if(isTeacher())return;e.preventDefault();A[e.target.dataset.enter]()}});
 
 /* ---------- printable pages (saved as a file because the viewer cannot open the print dialog) ---------- */
 const PCSS='body{font-family:Arial,sans-serif;color:#000;margin:18px}h1{margin:0;font-size:22px}h2{font-size:14px;margin:8px 0 4px}.sub{color:#444;font-size:12px;margin-bottom:10px}.g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.d{border:1px solid #666;border-radius:6px;padding:6px;break-inside:avoid;font-size:12px}.d.t{border:2px solid #000;background:#f1f1f1}.d b{display:block;font-size:13px}.i{margin:3px 0}.m{display:grid;grid-template-columns:repeat(7,1fr)}.m div{border:1px solid #666;min-height:70px;padding:3px;font-size:11px}.m .h{min-height:0;background:#eee;font-weight:bold;text-align:center}.m .t{background:#f1f1f1}.n{border-bottom:1px solid #999;height:20px}@page{size:landscape;margin:10mm}';
@@ -1008,7 +1030,37 @@ async function savePrint(kind){let html,name;
   html=pdoc(MON[m-1]+' '+y,`<h1>${MON[m-1]} ${y} · ${esc(S.name)}'s Planner</h1><div class="sub">★ = tutoring day (Tuesday and Thursday, 30 minutes)<br>${wk.map(esc).join(' · ')}</div><div class="m">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<div class="h">${x}</div>`).join('')}${cells}</div>`)}
  try{const d=await claude.use('downloads');if(!d){toast('Use Ctrl+P (Cmd+P) to print this page');return}await d.save({filename:name,data:html});toast('Saved. Open the file and print it.')}catch(err){if(!err||err.code!=='declined')toast('Could not save. Try Ctrl+P (Cmd+P) instead.')}}
 
+/* ---------- Vercel sync: Isabella writes, her parents only view ---------- */
+const CODE_KEY='isabella-planner-code';
+const net={mode:window.claude?'claude':'loading',code:'',err:'',timer:null,poll:null,busy:false,again:false,state:'off'};
+const NAV=new Set(['tab','prevDay','nextDay','today','prevWeek','nextWeek','thisWeek','prevMonth','nextMonth','thisMonth','gotoDay','app','home','mgoto','curWeek','openCursive','login','logout']);
+function isTeacher(){return net.mode==='teacher'}
+async function api(method,body){const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),10000);
+ try{return await fetch('/api/state',{method,headers:{'content-type':'application/json','x-code':net.code},body:body?JSON.stringify(body):undefined,cache:'no-store',signal:ctl.signal})}finally{clearTimeout(t)}}
+function adopt(r){S=fixBooks(Object.assign(defaultState(),JSON.parse(r.json)));if(!isTeacher())persistLocal()}
+async function tryAuth(code){net.code=code||'';let r;
+ try{r=await api('GET')}catch(e){net.mode='local';return render()}
+ if(r.status===401){net.mode='login';net.err=code?'That code did not work. Try again.':'';return render()}
+ if(!r.ok){net.mode='local';return render()}
+ let j;try{j=await r.json()}catch(e){net.mode='local';return render()}
+ try{localStorage.setItem(CODE_KEY,net.code)}catch(e){}
+ net.mode=j.role;net.err='';const has=j.state&&j.state.json;
+ if(isTeacher()){S=has?(adopt(j.state),S):defaultState();net.state='synced';clearInterval(net.poll);net.poll=setInterval(refresh,30000)}
+ else if(has&&(j.state.updated||0)>(S.updated||0))adopt(j.state);
+ else if(S.updated>0)pushServer();
+ if(!isTeacher())net.state='synced';
+ render()}
+async function pushServer(){if(net.mode!=='student')return;if(net.busy){net.again=true;return}net.busy=true;
+ try{const r=await api('PUT',{updated:S.updated,json:JSON.stringify(S)});
+  if(r.status===409){const j=await r.json();if(j.state&&j.state.json){adopt(j.state);render()}net.state='synced'}
+  else net.state=r.ok?'synced':'fail'}catch(e){net.state='fail'}
+ net.busy=false;setStatus();if(net.again){net.again=false;pushServer()}}
+async function refresh(){if(net.mode!=='teacher'&&net.mode!=='student')return;
+ try{const r=await api('GET');if(!r.ok)return;const j=await r.json();if(j.state&&j.state.json&&(j.state.updated||0)>(S.updated||0)){adopt(j.state);render()}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+
 render();initCloud();
+if(net.mode==='loading'){let c='';try{c=localStorage.getItem(CODE_KEY)||''}catch(e){}tryAuth(c)}
 </script>
 
 </body></html>
