@@ -286,11 +286,11 @@ function planFor(ds){const dw=dowOf(ds),lw=lessonWeek(weekStart(ds));
  if(dw===2)return tutor(mon>0?'Review '+rng(f,f+mon-1):'Review lessons');
  if(dw===3)return[...les(f+mon,wed,mon+1),...rt];
  if(dw===4)return tutor(wed+fri>0?'Review '+rng(f+mon,lw.last):'Review lessons');
- if(dw===5)return[...les(f+mon+wed,fri,mon+wed+1),...rt,...(rg>0?[T('summary','Write reading summary','summary')]:[])];
+ if(dw===5)return[...les(f+mon+wed,fri,mon+wed+1),...rt];
  return[]}
 const TYPE_NAME={cie:'CIE',read:'Reading',spell:'Spelling',cursive:'Cursive',summary:'Summary',tutor:'Tutor',plan:'Plan',catch:'Catch-up',custom:'Mine'};
 const isTutor=ds=>{const w=dowOf(ds);return w===2||w===4};
-const overdueEligible=t=>t.base&&['cie','read','spell','cursive','summary'].includes(t.type)&&!t.id.startsWith('t-');
+const overdueEligible=t=>t.base&&['cie','read','spell','cursive'].includes(t.type)&&!t.id.startsWith('t-');
 
 /* ---------- state ---------- */
 function defaultState(){const t=TODAY();return{v:1,updated:0,name:'Isabella',cycleStart:START_WEEK,trackFrom:START_WEEK,
@@ -554,7 +554,7 @@ function weeklyCheck(kind,ws){const n=schoolWeek(ws);if(n<1||n>32)return'';
 const on=!!(kind==='spell'?S.spellDone:S.cursiveDone)[n];
  const lbl=kind==='spell'?'Spelling Week '+n+' practiced':'Cursive letters: '+lettersFor(n)+' (pencil and paper)';
  return`<label class="task t-${kind} ${on?'done':''}"><input type="checkbox" data-act="listCheck" data-kind="${kind}" data-n="${n}" ${on?'checked':''}><span class="box"></span><span class="lbl">${esc(lbl)}</span></label>`}
-function weekStats(ws){let total=0,done=0;const by={cie:[0,0],summary:[0,0]};
+function weekStats(ws){let total=0,done=0;const by={cie:[0,0]};
  for(let i=0;i<5;i++){const d=addDays(ws,i);for(const t of tasksFor(d)){total++;const dn=isDone(d,t.id);if(dn)done++;if(t.base&&by[t.type]){by[t.type][1]++;if(dn)by[t.type][0]++}}}
  const n=schoolWeek(ws);if(n>=1&&n<=32){total+=1+(CUR[n]?1:0);done+=(S.spellDone[n]?1:0)+(cursiveComplete(n)?1:0)}
  const chapters=planChaptersRead(ws);
@@ -575,7 +575,6 @@ function achievements(){
  let perfect=false,three=false;weeks.forEach(w=>{const st=weekStats(w);if(st.total>=10&&st.pct===100)perfect=true;{const rp=readPlan(w);if(rp&&st.chapters>=rp.goal)three=true}});
  const cursiveDone=Array.from({length:32},(_,i)=>i+1).filter(cursiveComplete).length;
  const spellN=Object.values(S.spellDone).filter(Boolean).length;
- const sumOk=Object.keys(S.done).some(k=>S.done[k]&&/\|summary$/.test(k));
  const bookDone=S.books.some(b=>b.status==='done'||(b.total>0&&readSet(b).size>=b.total));
  const st=streak();
  return[
@@ -585,7 +584,6 @@ function achievements(){
   {ic:'🌟',n:'Perfect Week',s:'Finish every weekday task',on:perfect},
   {ic:'✍️',n:'Cursive Star',s:'4 cursive weeks done',on:cursiveDone>=4},
   {ic:'🐝',n:'Spelling Ace',s:'Finish 4 spelling lists',on:spellN>=4},
-  {ic:'📝',n:'Summary Author',s:'Finish a reading summary',on:sumOk},
   {ic:'📚',n:'Book Finisher',s:'Read every chapter of a book',on:bookDone}]}
 
 /* ---------- html bits ---------- */
@@ -602,7 +600,6 @@ function weekGoalsHTML(ws){const st=weekStats(ws);
   ${bar(st.pct,'var(--brand)')}
   ${lessonWeek(ws)?goalRow('CIE Language Arts lessons '+lessonWeek(ws).first+'–'+lessonWeek(ws).last,st.by.cie[0],st.by.cie[1],'var(--cie)'):'<p class="hint">No CIE lessons are planned for this week yet.</p>'}
   ${(()=>{const rp=readPlan(ws);return rp?goalRow('Reading: '+chRange(rp),st.chapters,rp.goal,'var(--read)'):'<p class="hint">No reading is assigned this week.</p>'})()}
-  ${st.by.summary[1]?goalRow('One reading summary',st.by.summary[0],1,'var(--summary)'):''}
   <div class="tasks">${weeklyCheck('spell',ws)}${weeklyCheck('cursive',ws)}</div></div>`}
 function dayCard(ds){const tut=isTutor(ds),st=dayStats(ds);
  return`<section class="day ${tut?'tutor':''} ${ds===TODAY()?'today':''}"><header><button class="dayname" data-act="gotoDay" data-date="${ds}"><b>${DOW[dowOf(ds)]}</b><span>${short(ds)}</span></button>${tut?'<span class="badge gold">⭐ Tutor · 30 min</span>':''}${st.total?`<span class="cnt">${st.done}/${st.total}</span>`:''}</header>${st.total?bar(st.pct,tut?'var(--tutor)':'var(--brand)'):''}<div class="tasks">${tasksFor(ds).map(t=>taskRow(ds,t)).join('')||'<p class="muted small">Free day. No assignments.</p>'}</div></section>`}
@@ -909,7 +906,7 @@ function renderMath(){
 
 /* ================= ELA status + plan (same look as Math) ================= */
 function elaStatus(){const items=overdue().flatMap(x=>x.tasks),n=t=>items.filter(x=>x.type===t).length;
- const parts=[[n('cie'),'lesson','lessons'],[n('read'),'reading chapter','reading chapters'],[n('summary'),'summary','summaries'],[items.filter(x=>x.custom).length,'extra task','extra tasks']].filter(p=>p[0]>0).map(p=>p[0]+' '+(p[0]===1?p[1]:p[2]));
+ const parts=[[n('cie'),'lesson','lessons'],[n('read'),'reading chapter','reading chapters'],[items.filter(x=>x.custom).length,'extra task','extra tasks']].filter(p=>p[0]>0).map(p=>p[0]+' '+(p[0]===1?p[1]:p[2]));
  const what=parts.length>1?parts.slice(0,-1).join(', ')+' and '+parts[parts.length-1]:parts[0]||'';
  let level='ok',msg='🎉 You are on schedule. Keep it up!',short='✅ On schedule';
  if(items.length&&items.length<=2){level='warn';msg='⚠️ You are behind by '+what+'. Finish the missing work first, then keep going.';short='⚠️ '+what+' behind'}
@@ -930,7 +927,7 @@ function viewPlan(){const st=elaStatus(),pr=elaProgress(),t=TODAY(),thisWs=weekS
   ${goalRow('CIE lessons done (1–'+pr.total+')',pr.done,pr.total,'var(--cie)')}${goalRow('City of Ember chapters',Math.min(rd,rt),rt,'var(--read)')}
   ${goalRow('Spelling weeks done',spN,32,'var(--spell)')}${goalRow('Cursive weeks done',cuN,29,'var(--cursive)')}
   <p class="small">Lessons 1–${pr.total} are planned so far. More lessons will be added later. Course deadline: <b>Jun 30, 2027</b>.</p></div>
- <div class="card"><h2>Weekly schedule</h2><p class="hint">Lessons, reading and the weekly summary. Tap a week to open it.</p><div class="rpg">${weeks}</div></div>`}
+ <div class="card"><h2>Weekly schedule</h2><p class="hint">Lessons and reading. Tap a week to open it.</p><div class="rpg">${weeks}</div></div>`}
 
 const TABS=[['today','Today'],['week','Week'],['month','Month'],['plan','Plan'],['reading','Reading'],['spelling','Spelling'],['cursive','Cursive']];
 const VIEWS={today:viewToday,week:viewWeek,month:viewMonth,plan:viewPlan,reading:viewReading,spelling:viewSpelling,cursive:viewCursive};
@@ -1004,7 +1001,7 @@ const PCSS='body{font-family:Arial,sans-serif;color:#000;margin:18px}h1{margin:0
 function pdoc(title,body){return`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${PCSS}</style></head><body>${body}</body></html>`}
 async function savePrint(kind){let html,name;
  if(kind==='week'){const ws=weekStart(ui.date),wi=weekInfo(ws),st=weekStats(ws);name='planner-week-'+ws+'.html';
-  html=pdoc('Week of '+ws,`<h1>${esc(S.name)}'s Planner · ${short(ws)} – ${short(addDays(ws,6))}</h1><div class="sub">Week ${wi.num} · Goals: CIE lessons ${lessonWeek(ws)?lessonWeek(ws).first+'–'+lessonWeek(ws).last:'none planned'} (${st.by.cie[0]}/${st.by.cie[1]}), ${readPlan(ws)?'reading '+chRange(readPlan(ws))+' ('+st.chapters+'/'+readPlan(ws).goal+'), one reading summary':'no reading assigned'}</div><div class="g">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i);return`<div class="d ${isTutor(d)?'t':''}"><b>${DOW[dowOf(d)]} ${short(d)}${isTutor(d)?' ★ Tutoring (30 min)':''}</b>${tasksFor(d).map(t=>`<div class="i">${isDone(d,t.id)?'☑':'☐'} ${esc(t.label)}</div>`).join('')||'<div class="i">Free day</div>'}</div>`}).join('')}<div class="d"><b>This week</b>${(()=>{const n=schoolWeek(ws);return n>=1&&n<=32?`<div class="i">${S.spellDone[n]?'☑':'☐'} Spelling Week ${n}</div><div class="i">${cursiveComplete(n)?'☑':'☐'} Cursive: ${esc(lettersFor(n))}</div>`:''})()}</div></div>`)}
+  html=pdoc('Week of '+ws,`<h1>${esc(S.name)}'s Planner · ${short(ws)} – ${short(addDays(ws,6))}</h1><div class="sub">Week ${wi.num} · Goals: CIE lessons ${lessonWeek(ws)?lessonWeek(ws).first+'–'+lessonWeek(ws).last:'none planned'} (${st.by.cie[0]}/${st.by.cie[1]}), ${readPlan(ws)?'reading '+chRange(readPlan(ws))+' ('+st.chapters+'/'+readPlan(ws).goal+')':'no reading assigned'}</div><div class="g">${[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i);return`<div class="d ${isTutor(d)?'t':''}"><b>${DOW[dowOf(d)]} ${short(d)}${isTutor(d)?' ★ Tutoring (30 min)':''}</b>${tasksFor(d).map(t=>`<div class="i">${isDone(d,t.id)?'☑':'☐'} ${esc(t.label)}</div>`).join('')||'<div class="i">Free day</div>'}</div>`}).join('')}<div class="d"><b>This week</b>${(()=>{const n=schoolWeek(ws);return n>=1&&n<=32?`<div class="i">${S.spellDone[n]?'☑':'☐'} Spelling Week ${n}</div><div class="i">${cursiveComplete(n)?'☑':'☐'} Cursive: ${esc(lettersFor(n))}</div>`:''})()}</div></div>`)}
  else{const[y,m]=ui.month.split('-').map(Number),first=iso(new Date(y,m-1,1)),last=iso(new Date(y,m,0));name='planner-month-'+ui.month+'.html';
   let cells='';for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7))for(let i=0;i<7;i++){const d=addDays(ws,i),inM=d.slice(0,7)===ui.month;cells+=`<div class="${isTutor(d)&&inM?'t':''}">${inM?`<b>${parse(d).getDate()}</b>${isTutor(d)?' ★ Tutoring':''}<br>${(dowOf(d)===1&&0)?'':''}`:''}</div>`}
   const wk=[];for(let ws=weekStart(first);ws<=last;ws=addDays(ws,7)){const wi=weekInfo(ws);wk.push(`Week ${wi.num} (${short(ws)})`)}
